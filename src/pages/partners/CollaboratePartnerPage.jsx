@@ -5,7 +5,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { FaRegEye } from "react-icons/fa6";
 import { AiTwotoneEdit } from "react-icons/ai";
 import { RiDeleteBin5Line } from "react-icons/ri";
-import toast from "react-hot-toast";
+import { toast } from "react-toastify";
 import PageHeader from "../../components/PageHeader";
 import Pagination from "../../UI/pagination";
 import { fetchPartners, deletePartner } from "../../store/slices/partnersSlice";
@@ -21,6 +21,7 @@ export const CollaboratePartnerPage = () => {
 
   const [page, setPage] = useState(1);
   const limit = 10;
+  const [limitLoading, setLimitLoading] = useState(false);
   const [filters, setFilters] = useState({
     isActive: "",
     isPremium: "",
@@ -197,17 +198,30 @@ export const CollaboratePartnerPage = () => {
                   return toast.error("Please enter a valid limit");
                 }
                 try {
+                  setLimitLoading(true);
                   await api.put("/partners/limit", {
                     limit: Number(partnerLimit),
                   });
                   toast.success("Partner limit updated successfully");
                 } catch (error) {
                   toast.error("Failed to update partner limit");
+                } finally {
+                  setLimitLoading(false);
                 }
               }}
-              className="px-3 py-1 bg-primary text-white rounded-lg hover:bg-primary/80"
+              className={`px-3 py-1 rounded-lg text-white 
+    ${
+      limitLoading
+        ? "bg-gray-400 cursor-not-allowed"
+        : "bg-primary hover:bg-primary/80"
+    }
+  `}
             >
-              ✓
+              {limitLoading ? (
+                <span className="loader border-2 border-white border-t-transparent rounded-full w-4 h-4 inline-block animate-spin"></span>
+              ) : (
+                "✓"
+              )}
             </button>
           </div>
         </div>
