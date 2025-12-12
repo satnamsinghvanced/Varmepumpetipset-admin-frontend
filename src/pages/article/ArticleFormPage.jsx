@@ -13,7 +13,10 @@ import {
   getArticleById,
   updateArticle,
 } from "../../store/slices/articleSlice";
-import { getCategories, getCategoriesAll } from "../../store/slices/articleCategoriesSlice";
+import {
+  getCategories,
+  getCategoriesAll,
+} from "../../store/slices/articleCategoriesSlice";
 import { toast } from "react-toastify";
 import ImageUploader from "../../UI/ImageUpload";
 
@@ -50,8 +53,8 @@ const ArticleFormPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { selectedArticle } = useSelector((state) => state.articles);
-  const { categoriesAll  } = useSelector((state) => state.categories);
-// console.log(categoriesAll )
+  const { categoriesAll } = useSelector((state) => state.categories);
+  // console.log(categoriesAll )
   const [form, setForm] = useState({
     title: "",
     slug: "",
@@ -88,7 +91,6 @@ const ArticleFormPage = () => {
       noimageindex: false,
       notranslate: false,
     },
-
   });
   const [imageFile, setImageFile] = useState(null);
   const [previewImage, setPreviewImage] = useState("");
@@ -123,7 +125,7 @@ const ArticleFormPage = () => {
         showDate: selectedArticle.showDate
           ? selectedArticle.showDate.split("T")[0]
           : "",
-          metaTitle: selectedArticle.metaTitle || "",
+        metaTitle: selectedArticle.metaTitle || "",
         metaDescription: selectedArticle.metaDescription || "",
         metaKeywords: selectedArticle.metaKeywords || "",
         metaImage: selectedArticle.metaImage || "",
@@ -165,8 +167,33 @@ const ArticleFormPage = () => {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
+  const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
+  const allowedExtensions = [
+    "image/jpeg",
+    "image/png",
+    "image/gif",
+    "image/webp",
+    "image/svg+xml",
+    "image/x-icon",
+  ];
   const handleImageChange = (event) => {
     const file = event.target.files?.[0];
+
+    if (!file) return;
+
+    // MIME type check
+    if (!allowedExtensions.includes(file.type)) {
+      toast.error(
+        "Invalid file type. Please upload jpeg, png, gif, webp, svg or ico."
+      );
+      return;
+    }
+
+    // Size check
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error("File size too large. Maximum allowed size is 2MB.");
+      return;
+    }
     setImageFile(file || null);
     setPreviewImage(file ? URL.createObjectURL(file) : "");
   };
@@ -178,11 +205,11 @@ const ArticleFormPage = () => {
     const formData = new FormData();
     Object.entries(form).forEach(([key, value]) => {
       if (value !== null && value !== undefined) {
-         if (key === "robots") {
-      formData.append("robots", JSON.stringify(value)); // FIX HERE
-    } else {
-      formData.append(key, value);
-    }
+        if (key === "robots") {
+          formData.append("robots", JSON.stringify(value)); // FIX HERE
+        } else {
+          formData.append(key, value);
+        }
       }
     });
     if (imageFile) {
@@ -320,7 +347,7 @@ const ArticleFormPage = () => {
               />
             </div>
           </div>
-             <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm mt-4">
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm mt-4">
             <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
               Featured image
             </label>
@@ -360,155 +387,153 @@ const ArticleFormPage = () => {
         </div>
 
         <div className="space-y-6">
-       <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-6">
-              {/* SEO SECTION */}
-              <div className="pt-6">
-                <h2 className="text-xl font-bold mb-4">SEO Settings</h2>
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-6">
+            {/* SEO SECTION */}
+            <div className="pt-6">
+              <h2 className="text-xl font-bold mb-4">SEO Settings</h2>
 
-                {/* Meta Title */}
-                <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                  Meta Title
-                </label>
-                <input
-                  className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-primary"
-                  value={form.metaTitle}
-                  onChange={(e) =>
-                    setForm({ ...form, metaTitle: e.target.value })
-                  }
-                />
+              {/* Meta Title */}
+              <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                Meta Title
+              </label>
+              <input
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-primary"
+                value={form.metaTitle}
+                onChange={(e) =>
+                  setForm({ ...form, metaTitle: e.target.value })
+                }
+              />
 
-                {/* Meta Description */}
-                <label className="mt-4 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                  Meta Description
-                </label>
-                <textarea
-                  className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm h-24 focus:border-primary"
-                  value={form.metaDescription}
-                  onChange={(e) =>
-                    setForm({ ...form, metaDescription: e.target.value })
-                  }
-                />
+              {/* Meta Description */}
+              <label className="mt-4 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                Meta Description
+              </label>
+              <textarea
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm h-24 focus:border-primary"
+                value={form.metaDescription}
+                onChange={(e) =>
+                  setForm({ ...form, metaDescription: e.target.value })
+                }
+              />
 
-                {/* Keywords */}
-                <label className="mt-4 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                  Meta Keywords (comma separated)
-                </label>
-                <input
-                  className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-primary"
-                  value={form.metaKeywords}
-                  onChange={(e) =>
-                    setForm({ ...form, metaKeywords: e.target.value })
-                  }
-                />
+              {/* Keywords */}
+              <label className="mt-4 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                Meta Keywords (comma separated)
+              </label>
+              <input
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-primary"
+                value={form.metaKeywords}
+                onChange={(e) =>
+                  setForm({ ...form, metaKeywords: e.target.value })
+                }
+              />
 
-                {/* Meta Image */}
-                <ImageUploader
-                  label="Meta Image"
-                  value={form.metaImage}
-                  onChange={(img) => setForm({ ...form, metaImage: img })}
-                />
-              </div>
-
-              {/* OG TAGS */}
-              <div className="border-t pt-6">
-                <h2 className="text-xl font-bold mb-4">Open Graph (OG) Tags</h2>
-
-                <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                  OG Title
-                </label>
-                <input
-                  className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-primary"
-                  value={form.ogTitle}
-                  onChange={(e) =>
-                    setForm({ ...form, ogTitle: e.target.value })
-                  }
-                />
-
-                <label className="mt-4 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                  OG Description
-                </label>
-                <textarea
-                  className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm h-24 focus:border-primary"
-                  value={form.ogDescription}
-                  onChange={(e) =>
-                    setForm({ ...form, ogDescription: e.target.value })
-                  }
-                />
-
-                <ImageUploader
-                  label="OG Image"
-                  value={form.ogImage}
-                  onChange={(img) => setForm({ ...form, ogImage: img })}
-                />
-
-                <label className="mt-4 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                  OG Type
-                </label>
-                <input
-                  className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-primary"
-                  value={form.ogType}
-                  onChange={(e) => setForm({ ...form, ogType: e.target.value })}
-                />
-              </div>
-
-              {/* ADVANCED SEO */}
-              <div className="border-t pt-6">
-                <h2 className="text-xl font-bold mb-4">Advanced SEO</h2>
-
-                <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                  Canonical URL
-                </label>
-                <input
-                  className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-primary"
-                  value={form.canonicalUrl}
-                  onChange={(e) =>
-                    setForm({ ...form, canonicalUrl: e.target.value })
-                  }
-                />
-
-                <label className="mt-4 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                  JSON-LD Schema
-                </label>
-                <textarea
-                  className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm h-28 focus:border-primary"
-                  value={form.jsonLd}
-                  onChange={(e) => setForm({ ...form, jsonLd: e.target.value })}
-                />
-
-                <label className="mt-4 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                  Custom Head Tags
-                </label>
-                <textarea
-                  className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm h-24 focus:border-primary"
-                  value={form.customHead}
-                  onChange={(e) =>
-                    setForm({ ...form, customHead: e.target.value })
-                  }
-                />
-              </div>
-
-              {/* ROBOTS SETTINGS */}
-              <div className="border-t pt-6">
-                <h2 className="text-xl font-bold mb-4">Robots Settings</h2>
-
-                {Object.keys(form.robots).map((key) => (
-                  <label key={key} className="flex items-center gap-2">
-                    <input
-                      className="!relative"
-                      type="checkbox"
-                      checked={form.robots[key]}
-                      onChange={(e) =>
-                        setForm({
-                          ...form,
-                          robots: { ...form.robots, [key]: e.target.checked },
-                        })
-                      }
-                    />
-                    <span className="capitalize">{key}</span>
-                  </label>
-                ))}
-              </div>
+              {/* Meta Image */}
+              <ImageUploader
+                label="Meta Image"
+                value={form.metaImage}
+                onChange={(img) => setForm({ ...form, metaImage: img })}
+              />
             </div>
+
+            {/* OG TAGS */}
+            <div className="border-t pt-6">
+              <h2 className="text-xl font-bold mb-4">Open Graph (OG) Tags</h2>
+
+              <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                OG Title
+              </label>
+              <input
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-primary"
+                value={form.ogTitle}
+                onChange={(e) => setForm({ ...form, ogTitle: e.target.value })}
+              />
+
+              <label className="mt-4 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                OG Description
+              </label>
+              <textarea
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm h-24 focus:border-primary"
+                value={form.ogDescription}
+                onChange={(e) =>
+                  setForm({ ...form, ogDescription: e.target.value })
+                }
+              />
+
+              <ImageUploader
+                label="OG Image"
+                value={form.ogImage}
+                onChange={(img) => setForm({ ...form, ogImage: img })}
+              />
+
+              <label className="mt-4 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                OG Type
+              </label>
+              <input
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-primary"
+                value={form.ogType}
+                onChange={(e) => setForm({ ...form, ogType: e.target.value })}
+              />
+            </div>
+
+            {/* ADVANCED SEO */}
+            <div className="border-t pt-6">
+              <h2 className="text-xl font-bold mb-4">Advanced SEO</h2>
+
+              <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                Canonical URL
+              </label>
+              <input
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-primary"
+                value={form.canonicalUrl}
+                onChange={(e) =>
+                  setForm({ ...form, canonicalUrl: e.target.value })
+                }
+              />
+
+              <label className="mt-4 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                JSON-LD Schema
+              </label>
+              <textarea
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm h-28 focus:border-primary"
+                value={form.jsonLd}
+                onChange={(e) => setForm({ ...form, jsonLd: e.target.value })}
+              />
+
+              <label className="mt-4 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                Custom Head Tags
+              </label>
+              <textarea
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm h-24 focus:border-primary"
+                value={form.customHead}
+                onChange={(e) =>
+                  setForm({ ...form, customHead: e.target.value })
+                }
+              />
+            </div>
+
+            {/* ROBOTS SETTINGS */}
+            <div className="border-t pt-6">
+              <h2 className="text-xl font-bold mb-4">Robots Settings</h2>
+
+              {Object.keys(form.robots).map((key) => (
+                <label key={key} className="flex items-center gap-2">
+                  <input
+                    className="!relative"
+                    type="checkbox"
+                    checked={form.robots[key]}
+                    onChange={(e) =>
+                      setForm({
+                        ...form,
+                        robots: { ...form.robots, [key]: e.target.checked },
+                      })
+                    }
+                  />
+                  <span className="capitalize">{key}</span>
+                </label>
+              ))}
+            </div>
+          </div>
 
           <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             <button
