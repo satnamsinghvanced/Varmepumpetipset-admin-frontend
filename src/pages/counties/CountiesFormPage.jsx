@@ -11,6 +11,34 @@ import {
 } from "../../store/slices/countySlice";
 import { toast } from "react-toastify";
 import { RiDeleteBin5Line } from "react-icons/ri";
+import ImageUploader from "../../UI/ImageUpload";
+import ReactQuill from "react-quill-new";
+const quillModules = {
+  toolbar: [
+    [{ header: [1, 2, 3, false] }],
+    ["bold", "italic", "underline", "strike"],
+    [{ list: "ordered" }, { list: "bullet" }],
+    ["blockquote", "code-block"],
+    [{ align: [] }],
+    ["link", "image"],
+    ["clean"],
+  ],
+};
+
+const quillFormats = [
+  "header",
+  "bold",
+  "italic",
+  "underline",
+  "strike",
+  "list",
+  "bullet",
+  "blockquote",
+  "code-block",
+  "align",
+  "link",
+  "image",
+];
 
 const requiredFields = ["name", "slug"];
 
@@ -40,9 +68,35 @@ const CountiesFormPage = () => {
     name: "",
     slug: "",
     excerpt: "",
+    title: "",
+    description: "",
     icon: "",
     companies: [],
+
+    // SEO
+    metaTitle: "",
+    metaDescription: "",
+    metaKeywords: "",
+    metaImage: "",
+
+    canonicalUrl: "",
+    jsonLd: "",
+
+    ogTitle: "",
+    ogDescription: "",
+    ogImage: "",
+    ogType: "website",
+
+    robots: {
+      noindex: false,
+      nofollow: false,
+      noarchive: false,
+      nosnippet: false,
+      noimageindex: false,
+      notranslate: false,
+    },
   });
+
   const [imageFile, setImageFile] = useState(null);
   const [previewImage, setPreviewImage] = useState("");
   const [errors, setErrors] = useState({});
@@ -73,6 +127,10 @@ const CountiesFormPage = () => {
         name: selectedCounty.name || "",
         slug: selectedCounty.slug || "",
         excerpt: selectedCounty.excerpt || "",
+        title: selectedCounty.title || "",
+        description: selectedCounty.description || "",
+        icon: selectedCounty.icon || "",
+
         companies: Array.isArray(selectedCounty.companies)
           ? selectedCounty.companies.map((c, index) => ({
               companyId: String(c.companyId._id || c.companyId),
@@ -80,7 +138,30 @@ const CountiesFormPage = () => {
               isRecommended: !!c.isRecommended,
             }))
           : [],
+
+        metaTitle: selectedCounty.metaTitle || "",
+        metaDescription: selectedCounty.metaDescription || "",
+        metaKeywords: selectedCounty.metaKeywords || "",
+        metaImage: selectedCounty.metaImage || "",
+
+        canonicalUrl: selectedCounty.canonicalUrl || "",
+        jsonLd: selectedCounty.jsonLd || "",
+
+        ogTitle: selectedCounty.ogTitle || "",
+        ogDescription: selectedCounty.ogDescription || "",
+        ogImage: selectedCounty.ogImage || "",
+        ogType: selectedCounty.ogType || "website",
+
+        robots: selectedCounty.robots || {
+          noindex: false,
+          nofollow: false,
+          noarchive: false,
+          nosnippet: false,
+          noimageindex: false,
+          notranslate: false,
+        },
       });
+
       setPreviewImage(selectedCounty.icon || "");
     }
   }, [isEditMode, selectedCounty]);
@@ -120,21 +201,44 @@ const CountiesFormPage = () => {
     setImageFile(file || null);
     setPreviewImage(file ? URL.createObjectURL(file) : "");
   };
-  const buildPayload = () => {
-    const payload = {
-      name: form.name?.trim() || "",
-      slug: form.slug?.trim() || "",
-      excerpt: form.excerpt?.trim() || "",
-      icon: form.icon || "",
-      companies: form.companies.map((c, index) => ({
-        companyId: c.companyId,
-        rank: index + 1,
-        isRecommended: c.isRecommended,
-      })),
-    };
+  const buildPayload = () => ({
+    name: form.name.trim(),
+    slug: form.slug.trim(),
+    excerpt: form.excerpt,
+    title: form.title,
+    description: form.description,
+    icon: form.icon,
 
-    return payload;
-  };
+    companies: form.companies.map((c, index) => ({
+      companyId: c.companyId,
+      rank: index + 1,
+      isRecommended: c.isRecommended,
+    })),
+
+    // SEO
+    metaTitle: form.metaTitle,
+    metaDescription: form.metaDescription,
+    metaKeywords: form.metaKeywords,
+    metaImage: form.metaImage,
+
+    canonicalUrl: form.canonicalUrl,
+    jsonLd: form.jsonLd,
+
+    ogTitle: form.ogTitle,
+    ogDescription: form.ogDescription,
+    ogImage: form.ogImage,
+    ogType: form.ogType,
+
+    robots: {
+      noindex: !!form.robots.noindex,
+      nofollow: !!form.robots.nofollow,
+      noarchive: !!form.robots.noarchive,
+      nosnippet: !!form.robots.nosnippet,
+      noimageindex: !!form.robots.noimageindex,
+      notranslate: !!form.robots.notranslate,
+    },
+  });
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -155,7 +259,21 @@ const CountiesFormPage = () => {
         payload.append("name", form.name);
         payload.append("slug", form.slug);
         payload.append("excerpt", form.excerpt);
-        payload.append("icon", imageFile); // ✔ Upload file
+        payload.append("icon", imageFile);
+        payload.append("metaTitle", form.metaTitle);
+        payload.append("metaDescription", form.metaDescription);
+        payload.append("metaKeywords", form.metaKeywords);
+        payload.append("metaImage", form.metaImage);
+        payload.append("canonicalUrl", form.canonicalUrl);
+        payload.append("jsonLd", form.jsonLd);
+
+        payload.append("ogTitle", form.ogTitle);
+        payload.append("ogDescription", form.ogDescription);
+        payload.append("ogImage", form.ogImage);
+        payload.append("ogType", form.ogType);
+
+        payload.append("robots", JSON.stringify(form.robots));
+        payload.append("companies", JSON.stringify(form.companies));
       } else {
         payload = buildPayload(); // ✔ normal JSON
       }
@@ -213,6 +331,7 @@ const CountiesFormPage = () => {
               { label: "County Name", name: "name" },
               { label: "Slug", name: "slug" },
               { label: "Excerpt", name: "excerpt" },
+              { label: "Title", name: "title" },
             ].map((field) => (
               <div key={field.name}>
                 <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
@@ -307,19 +426,19 @@ const CountiesFormPage = () => {
                             );
                             return;
                           }
-                        updated.push({
-                              companyId: company._id,
-                              rank: updated.length + 1,
-                              isRecommended: false,
-                            });
-                          } else {
-                            updated = updated.filter(
-                              (c) => c.companyId !== company._id
-                            );
-                          }
+                          updated.push({
+                            companyId: company._id,
+                            rank: updated.length + 1,
+                            isRecommended: false,
+                          });
+                        } else {
+                          updated = updated.filter(
+                            (c) => c.companyId !== company._id
+                          );
+                        }
 
-                          setForm((prev) => ({ ...prev, companies: updated }));
-                        }}
+                        setForm((prev) => ({ ...prev, companies: updated }));
+                      }}
                     />
                     <span>{company.companyName}</span>
                     {/* {company.isRecommended && (
@@ -329,86 +448,86 @@ const CountiesFormPage = () => {
                 ))}
               </div>
             )}
-             <h4 className="font-semibold mt-4">Selected Companies</h4>
+            <h4 className="font-semibold mt-4">Selected Companies</h4>
 
-              <div className="space-y-2">
-                {form.companies.map((item, index) => {
-                  const company = allCompanies.find(
-                    (c) => c._id === item.companyId
-                  );
+            <div className="space-y-2">
+              {form.companies.map((item, index) => {
+                const company = allCompanies.find(
+                  (c) => c._id === item.companyId
+                );
 
-                  return (
-                    <div
-                      key={item.companyId}
-                      className="flex items-center justify-between border rounded-lg p-2 bg-slate-50"
-                    >
-                      <div className="flex items-center gap-3">
-                        <span className="text-sm font-medium">
-                          {index + 1}. {company?.companyName}
-                        </span>
+                return (
+                  <div
+                    key={item.companyId}
+                    className="flex items-center justify-between border rounded-lg p-2 bg-slate-50"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm font-medium">
+                        {index + 1}. {company?.companyName}
+                      </span>
 
-                        {/* Recommended */}
-                        <label className="flex items-center gap-1 text-xs">
-                          <input
-                            type="checkbox"
-                            className="!relative"
-                            checked={item.isRecommended}
-                            onChange={() => {
-                              const updated = [...form.companies];
-                              updated[index].isRecommended =
-                                !updated[index].isRecommended;
-                              setForm((prev) => ({
-                                ...prev,
-                                companies: updated,
-                              }));
-                            }}
-                          />
-                          Recommended
-                        </label>
-                      </div>
-
-                      {/* Reorder */}
-                      <div className="flex gap-1">
-                        <button
-                          type="button"
-                          disabled={index === 0}
-                          onClick={() => {
+                      {/* Recommended */}
+                      <label className="flex items-center gap-1 text-xs">
+                        <input
+                          type="checkbox"
+                          className="!relative"
+                          checked={item.isRecommended}
+                          onChange={() => {
                             const updated = [...form.companies];
-                            [updated[index - 1], updated[index]] = [
-                              updated[index],
-                              updated[index - 1],
-                            ];
+                            updated[index].isRecommended =
+                              !updated[index].isRecommended;
                             setForm((prev) => ({
                               ...prev,
                               companies: updated,
                             }));
                           }}
-                        >
-                          ↑
-                        </button>
-
-                        <button
-                          type="button"
-                          disabled={index === form.companies.length - 1}
-                          onClick={() => {
-                            const updated = [...form.companies];
-                            [updated[index], updated[index + 1]] = [
-                              updated[index + 1],
-                              updated[index],
-                            ];
-                            setForm((prev) => ({
-                              ...prev,
-                              companies: updated,
-                            }));
-                          }}
-                        >
-                          ↓
-                        </button>
-                      </div>
+                        />
+                        Recommended
+                      </label>
                     </div>
-                  );
-                })}
-              </div>
+
+                    {/* Reorder */}
+                    <div className="flex gap-1">
+                      <button
+                        type="button"
+                        disabled={index === 0}
+                        onClick={() => {
+                          const updated = [...form.companies];
+                          [updated[index - 1], updated[index]] = [
+                            updated[index],
+                            updated[index - 1],
+                          ];
+                          setForm((prev) => ({
+                            ...prev,
+                            companies: updated,
+                          }));
+                        }}
+                      >
+                        ↑
+                      </button>
+
+                      <button
+                        type="button"
+                        disabled={index === form.companies.length - 1}
+                        onClick={() => {
+                          const updated = [...form.companies];
+                          [updated[index], updated[index + 1]] = [
+                            updated[index + 1],
+                            updated[index],
+                          ];
+                          setForm((prev) => ({
+                            ...prev,
+                            companies: updated,
+                          }));
+                        }}
+                      >
+                        ↓
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
 
           <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm mt-4">
@@ -448,6 +567,169 @@ const CountiesFormPage = () => {
               </label>
             )}
           </div>
+           <div className="mt-4">
+                      <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                        Description
+                      </label>
+                      <div className="mt-2 rounded-2xl border border-slate-200 p-1">
+                        <ReactQuill
+                          value={form.description}
+                          onChange={(value) =>
+                            setForm((prev) => ({ ...prev, description: value }))
+                          }
+                          modules={quillModules}
+                          formats={quillFormats}
+                          className="rounded-2xl [&_.ql-container]:rounded-b-2xl [&_.ql-toolbar]:rounded-t-2xl"
+                        />
+                      </div>
+                    </div>
+             <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-6 mt-6">
+                      {/* SEO SECTION */}
+                      <div className="pt-6">
+                        <h2 className="text-xl font-bold mb-4">SEO Settings</h2>
+          
+                        {/* Meta Title */}
+                        <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                          Meta Title
+                        </label>
+                        <input
+                          className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-primary"
+                          value={form.metaTitle}
+                          onChange={(e) =>
+                            setForm({ ...form, metaTitle: e.target.value })
+                          }
+                        />
+          
+                        {/* Meta Description */}
+                        <label className="mt-4 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                          Meta Description
+                        </label>
+                        <textarea
+                          className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm h-24 focus:border-primary"
+                          value={form.metaDescription}
+                          onChange={(e) =>
+                            setForm({ ...form, metaDescription: e.target.value })
+                          }
+                        />
+          
+                        {/* Keywords */}
+                        <label className="mt-4 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                          Meta Keywords (comma separated)
+                        </label>
+                        <input
+                          className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-primary"
+                          value={form.metaKeywords}
+                          onChange={(e) =>
+                            setForm({ ...form, metaKeywords: e.target.value })
+                          }
+                        />
+          
+                        {/* Meta Image */}
+                        <ImageUploader
+                          label="Meta Image"
+                          value={form.metaImage}
+                          onChange={(img) => setForm({ ...form, metaImage: img })}
+                        />
+                      </div>
+          
+                      {/* OG TAGS */}
+                      <div className="border-t pt-6">
+                        <h2 className="text-xl font-bold mb-4">Open Graph (OG) Tags</h2>
+          
+                        <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                          OG Title
+                        </label>
+                        <input
+                          className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-primary"
+                          value={form.ogTitle}
+                          onChange={(e) => setForm({ ...form, ogTitle: e.target.value })}
+                        />
+          
+                        <label className="mt-4 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                          OG Description
+                        </label>
+                        <textarea
+                          className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm h-24 focus:border-primary"
+                          value={form.ogDescription}
+                          onChange={(e) =>
+                            setForm({ ...form, ogDescription: e.target.value })
+                          }
+                        />
+          
+                        <ImageUploader
+                          label="OG Image"
+                          value={form.ogImage}
+                          onChange={(img) => setForm({ ...form, ogImage: img })}
+                        />
+          
+                        <label className="mt-4 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                          OG Type
+                        </label>
+                        <input
+                          className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-primary"
+                          value={form.ogType}
+                          onChange={(e) => setForm({ ...form, ogType: e.target.value })}
+                        />
+                      </div>
+          
+                      {/* ADVANCED SEO */}
+                      <div className="border-t pt-6">
+                        <h2 className="text-xl font-bold mb-4">Advanced SEO</h2>
+          
+                        <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                          Canonical URL
+                        </label>
+                        <input
+                          className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-primary"
+                          value={form.canonicalUrl}
+                          onChange={(e) =>
+                            setForm({ ...form, canonicalUrl: e.target.value })
+                          }
+                        />
+          
+                        <label className="mt-4 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                          JSON-LD Schema
+                        </label>
+                        <textarea
+                          className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm h-28 focus:border-primary"
+                          value={form.jsonLd}
+                          onChange={(e) => setForm({ ...form, jsonLd: e.target.value })}
+                        />
+          
+                        <label className="mt-4 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                          Custom Head Tags
+                        </label>
+                        <textarea
+                          className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm h-24 focus:border-primary"
+                          value={form.customHead}
+                          onChange={(e) =>
+                            setForm({ ...form, customHead: e.target.value })
+                          }
+                        />
+                      </div>
+          
+                      {/* ROBOTS SETTINGS */}
+                      <div className="border-t pt-6">
+                        <h2 className="text-xl font-bold mb-4">Robots Settings</h2>
+          
+                        {Object.keys(form.robots).map((key) => (
+                          <label key={key} className="flex items-center gap-2">
+                            <input
+                              className="!relative"
+                              type="checkbox"
+                              checked={form.robots[key]}
+                              onChange={(e) =>
+                                setForm({
+                                  ...form,
+                                  robots: { ...form.robots, [key]: e.target.checked },
+                                })
+                              }
+                            />
+                            <span className="capitalize">{key}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
           <div className="mt-8">
             <button
               type="submit"

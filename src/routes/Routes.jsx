@@ -65,6 +65,7 @@ import FormCreateEditPage from "../pages/forms/FormPage";
 import FormManagePage from "../pages/forms/FormTypeSelectionPage";
 import StepsBuilderForm from "../pages/forms/StepsBuilderForm";
 import LeadDetails from "../pages/leadLogs/LeadDetails";
+import CountiesDetailPage from "../pages/counties/CountiesDetailPage";
 
 const Routes = () => {
   const navigate = useNavigate();
@@ -144,6 +145,7 @@ const Routes = () => {
         <Route path={ROUTES.COUNTY} element={<CountyPage />} />
         <Route path={ROUTES.COUNTY_CREATE} element={<CountiesFormPage />} />
         <Route path={ROUTES.COUNTY_EDIT} element={<CountiesFormPage />} />
+        <Route path={ROUTES.COUNTY_VIEW} element={<CountiesDetailPage />} />
 
         <Route path={ROUTES.PLACES} element={<Places />} />
         <Route path={ROUTES.PLACES_CREATE} element={<PlaceFormPage />} />
