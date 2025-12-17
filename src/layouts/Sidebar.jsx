@@ -131,7 +131,7 @@ const SideBar = ({ toggleSidebar, isMiniSidebarOpen, onCloseSidebar }) => {
       href: ROUTES.FORMS,
     },
     {
-      name: "Partners",
+      name: "Company Page",
       icon: UsersRound,
       href: ROUTES.PARTNERS,
     },

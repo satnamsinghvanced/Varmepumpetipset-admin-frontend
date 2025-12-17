@@ -584,16 +584,16 @@ const PartnerPage = () => {
       </Section>
       
       {/* --- NEW: Publishing and SEO Settings Section --- */}
-      <Section title="Robots Tags">
-        {/* <Input
+      <Section title="Publishing and Technical SEO">
+        <Input
           label="Slug (URL Path)"
           value={formData.slug}
           onChange={(e) => handleChange(e, "slug")}
           name="slug"
           disabled={!isEditing}
-        /> */}
+        />
 
-        {/* <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-4">
           <Input
             label="Published Date"
             type="datetime-local"
@@ -609,9 +609,9 @@ const PartnerPage = () => {
             name="showPublishedDate"
             disabled={!isEditing}
           />
-        </div> */}
+        </div>
 
-        {/* <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-4">
           <Input
             label="Last Updated Date"
             type="datetime-local"
@@ -627,9 +627,9 @@ const PartnerPage = () => {
             name="showLastUpdatedDate"
             disabled={!isEditing}
           />
-        </div> */}
+        </div>
 
-        {/* <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-4">
           <Checkbox
             label="Is Hidden (Draft Mode)"
             checked={formData.isHidden}
@@ -654,9 +654,9 @@ const PartnerPage = () => {
               disabled={!isEditing}
             />
           )}
-        </div> */}
+        </div>
 
-        {/* <h3 className="text-lg font-medium text-gray-700 mt-2">Robots Tags</h3> */}
+        <h3 className="text-lg font-medium text-gray-700 mt-2">Robots Tags</h3>
         <div className="grid grid-cols-3 gap-3">
           <Checkbox
             label="noindex"
@@ -702,13 +702,13 @@ const PartnerPage = () => {
           />
         </div>
 
-        {/* <Textarea
+        <Textarea
           label="Custom Head HTML/Scripts"
           value={formData.customHead}
           onChange={(e) => handleChange(e, "customHead")}
           name="customHead"
           disabled={!isEditing}
-        /> */}
+        />
 
         {/* <h3 className="text-lg font-medium text-gray-700 mt-2">Sitemap Settings</h3>
         <div className="grid grid-cols-3 gap-4">

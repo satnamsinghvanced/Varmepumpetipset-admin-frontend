@@ -38,7 +38,7 @@ console.log(partnerDetail)
             onClick={() => navigate(-1)}
             className="btn btn-white btn-sm rounded-lg border-slate-300 text-slate-700 px-6 py-2"
           >
-            Back to Partners
+            Back to Companies
           </button>
         </div>
         <div className="bg-white rounded-xl shadow-sm p-5 mb-6">

@@ -38,15 +38,14 @@ export const AddPartnerPage = () => {
         console.error("Error fetching questions:", err);
       });
   }, []);
-
   useEffect(() => {
     axios
       .get(`${import.meta.env.VITE_API_URL}/form-select`)
       .then((res) => {
         const list = res.data?.data || [];
-        setLeadTypes(list);
+        setLeadTypesList(list);
 
-        const defaultLeadTypes = list.map((type) => ({
+        const defaultLeadTypes = list.slice(0, 2).map((type) => ({
           typeId: type._id,
           formTitle: type.formTitle,
           price: type.price || 0,
@@ -177,7 +176,7 @@ export const AddPartnerPage = () => {
     <div className=" mx-auto">
       <div className="flex flex-col lg:flex-row w-full justify-between lg:items-center gap-5 mb-8">
         <div>
-          <h1 className="text-3xl font-bold">Add Partner</h1>
+          <h1 className="text-3xl font-bold">Add Company</h1>
           <p className="text-sm font-medium text-gray-600 mt-2">
             Add a new Partner to the database.
           </p>
@@ -188,7 +187,7 @@ export const AddPartnerPage = () => {
             onClick={() => navigate("/partners")}
             className="btn btn-white btn-sm rounded-lg border-slate-300 text-slate-700 px-6 py-2"
           >
-            Back to Partners
+            Back to Companies
           </button>
         </div>
       </div>
@@ -469,17 +468,13 @@ export const AddPartnerPage = () => {
 
                 {/* Expected Answer */}
                 {wish.options && wish.options.length > 1 ? (
-                  <MultiSelect
-                    options={wish.options}
-                    value={
-                      Array.isArray(wish.expectedAnswer)
-                        ? wish.expectedAnswer
-                        : []
-                    }
-                    onChange={(selectedValues) =>
-                      handleWishChange(index, "expectedAnswer", selectedValues)
-                    }
-                  />
+                   <MultiSelect
+    options={wish.options}
+    value={Array.isArray(wish.expectedAnswer) ? wish.expectedAnswer : []}
+    onChange={(selectedValues) =>
+      handleWishChange(index, "expectedAnswer", selectedValues)
+    }
+  />
                 ) : (
                   <input
                     type="text"

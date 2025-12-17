@@ -3,38 +3,9 @@ import Section from "../../UI/Section";
 import Input from "../../UI/Input";
 import ImageUploader from "../../UI/ImageUpload";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  getAboutPage,
-  updateAboutPage,
-} from "../../store/slices/aboutPageSlice";
+import { getAboutPage, updateAboutPage } from "../../store/slices/aboutPageSlice";
 import { toast } from "react-toastify";
-import ReactQuill from "react-quill-new";
-const quillModules = {
-  toolbar: [
-    [{ header: [1, 2, 3, false] }],
-    ["bold", "italic", "underline", "strike"],
-    [{ list: "ordered" }, { list: "bullet" }],
-    ["blockquote", "code-block"],
-    [{ align: [] }],
-    ["link", "image"],
-    ["clean"],
-  ],
-};
 
-const quillFormats = [
-  "header",
-  "bold",
-  "italic",
-  "underline",
-  "strike",
-  "list",
-  "bullet",
-  "blockquote",
-  "code-block",
-  "align",
-  "link",
-  "image",
-];
 const AboutPage = () => {
   const dispatch = useDispatch();
   const { about, loading } = useSelector((state) => state.about || {});
@@ -71,7 +42,7 @@ const AboutPage = () => {
       noarchive: false,
       nosnippet: false,
       noimageindex: false,
-      notranslate: false,
+      notranslate: false
     },
 
     customHead: "",
@@ -81,7 +52,7 @@ const AboutPage = () => {
       enabled: false,
       from: "",
       to: "",
-      type: 301,
+      type: 301
     },
 
     breadcrumbs: [],
@@ -109,7 +80,7 @@ const AboutPage = () => {
         metaKeywords: about.metaKeywords || "",
         robots: about.robots || form.robots,
         redirect: about.redirect || form.redirect,
-        breadcrumbs: about.breadcrumbs || [],
+        breadcrumbs: about.breadcrumbs || []
       });
     }
   }, [about]);
@@ -150,135 +121,66 @@ const AboutPage = () => {
         </div>
       ) : (
         <div className="space-y-8">
-          <Input
-            label="Heading"
-            value={form.heading}
-            onChange={(e) => setForm({ ...form, heading: e.target.value })}
-          />
-          <Input
-            label="Sub Heading"
-            value={form.subHeading}
-            onChange={(e) => setForm({ ...form, subHeading: e.target.value })}
-          />
 
-          <ImageUploader
-            label="Main Image"
-            value={form.image}
-            onChange={(img) => setForm({ ...form, image: img })}
-          />
+          <Input label="Heading" value={form.heading}
+            onChange={(e) => setForm({ ...form, heading: e.target.value })} />
+          <Input label="Sub Heading" value={form.subHeading}
+            onChange={(e) => setForm({ ...form, subHeading: e.target.value })} />
 
-          <Input
-            label="Heading 1"
-            value={form.heading1}
-            onChange={(e) => setForm({ ...form, heading1: e.target.value })}
-          />
-          <label
-            htmlFor="Sub Heading1"
-            className="block text-sm font-medium text-gray-600 mb-1"
-          >
-            Sub Heading 1
-          </label>
-          <ReactQuill
-            value={form.subHeading1}
-            onChange={(value) => setForm({ ...form, subHeading1: value })}
-            modules={quillModules}
-            formats={quillFormats}
-            className="rounded-2xl [&_.ql-container]:rounded-b-2xl [&_.ql-toolbar]:rounded-t-2xl"
-          />
+          <ImageUploader label="Main Image" value={form.image}
+            onChange={(img) => setForm({ ...form, image: img })} />
 
-          {/* <Input label="Sub Heading 1" value={form.subHeading1}
-            onChange={(e) => setForm({ ...form, subHeading1: e.target.value })} /> */}
+          <Input label="Heading 1" value={form.heading1}
+            onChange={(e) => setForm({ ...form, heading1: e.target.value })} />
+          <Input label="Sub Heading 1" value={form.subHeading1}
+            onChange={(e) => setForm({ ...form, subHeading1: e.target.value })} />
 
           {/* SEO SECTION */}
           <div className="border-t pt-6">
             <h2 className="text-xl font-bold mb-4">SEO Settings</h2>
 
-            <Input
-              label="Meta Title"
-              value={form.metaTitle}
-              onChange={(e) => setForm({ ...form, metaTitle: e.target.value })}
-            />
+            <Input label="Meta Title" value={form.metaTitle}
+              onChange={(e) => setForm({ ...form, metaTitle: e.target.value })} />
 
-            <Input
-              label="Meta Description"
-              textarea
-              value={form.metaDescription}
-              onChange={(e) =>
-                setForm({ ...form, metaDescription: e.target.value })
-              }
-            />
+            <Input label="Meta Description" textarea value={form.metaDescription}
+              onChange={(e) => setForm({ ...form, metaDescription: e.target.value })} />
 
-            <Input
-              label="Meta Keywords (comma separated)"
+            <Input label="Meta Keywords (comma separated)"
               value={form.metaKeywords}
-              onChange={(e) =>
-                setForm({ ...form, metaKeywords: e.target.value })
-              }
-            />
+              onChange={(e) => setForm({ ...form, metaKeywords: e.target.value })} />
 
-            <ImageUploader
-              label="Meta Image"
-              value={form.metaImage}
-              onChange={(img) => setForm({ ...form, metaImage: img })}
-            />
+            <ImageUploader label="Meta Image" value={form.metaImage}
+              onChange={(img) => setForm({ ...form, metaImage: img })} />
           </div>
 
           {/* OG TAGS */}
           <div className="border-t pt-6">
             <h2 className="text-xl font-bold mb-4">Open Graph (OG) Tags</h2>
 
-            <Input
-              label="OG Title"
-              value={form.ogTitle}
-              onChange={(e) => setForm({ ...form, ogTitle: e.target.value })}
-            />
-            <Input
-              label="OG Description"
-              textarea
-              value={form.ogDescription}
-              onChange={(e) =>
-                setForm({ ...form, ogDescription: e.target.value })
-              }
-            />
+            <Input label="OG Title" value={form.ogTitle}
+              onChange={(e) => setForm({ ...form, ogTitle: e.target.value })} />
+            <Input label="OG Description" textarea value={form.ogDescription}
+              onChange={(e) => setForm({ ...form, ogDescription: e.target.value })} />
 
-            <ImageUploader
-              label="OG Image"
-              value={form.ogImage}
-              onChange={(img) => setForm({ ...form, ogImage: img })}
-            />
+            <ImageUploader label="OG Image" value={form.ogImage}
+              onChange={(img) => setForm({ ...form, ogImage: img })} />
 
-            <Input
-              label="OG Type"
-              value={form.ogType}
-              onChange={(e) => setForm({ ...form, ogType: e.target.value })}
-            />
+            <Input label="OG Type" value={form.ogType}
+              onChange={(e) => setForm({ ...form, ogType: e.target.value })} />
           </div>
 
           {/* ADVANCED SEO */}
           <div className="border-t pt-6">
             <h2 className="text-xl font-bold mb-4">Advanced SEO</h2>
 
-            <Input
-              label="Canonical URL"
-              value={form.canonicalUrl}
-              onChange={(e) =>
-                setForm({ ...form, canonicalUrl: e.target.value })
-              }
-            />
+            <Input label="Canonical URL" value={form.canonicalUrl}
+              onChange={(e) => setForm({ ...form, canonicalUrl: e.target.value })} />
 
-            <Input
-              label="JSON-LD Schema"
-              textarea
-              value={form.jsonLd}
-              onChange={(e) => setForm({ ...form, jsonLd: e.target.value })}
-            />
+            <Input label="JSON-LD Schema" textarea value={form.jsonLd}
+              onChange={(e) => setForm({ ...form, jsonLd: e.target.value })} />
 
-            <Input
-              label="Custom Head Tags"
-              textarea
-              value={form.customHead}
-              onChange={(e) => setForm({ ...form, customHead: e.target.value })}
-            />
+            <Input label="Custom Head Tags" textarea value={form.customHead}
+              onChange={(e) => setForm({ ...form, customHead: e.target.value })} />
           </div>
 
           {/* ROBOTS */}

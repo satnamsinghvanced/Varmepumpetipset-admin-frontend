@@ -1,11 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import api from "../../api/axios";
-const IMAGE_URL = import.meta.env.VITE_API_URL_IMAGE;
-
-const fixImageUrl = (url) => {
-  if (!url) return null;
-  return url.startsWith("http") ? url : `${IMAGE_URL}${url}`;
-};
 
 export const getPlaces = createAsyncThunk(
   "places/getPlaces",
@@ -24,10 +18,6 @@ export const getPlaceById = createAsyncThunk(
   async (id, { rejectWithValue }) => {
     try {
       const { data } = await api.get(`/places/detail/${id}`);
-
-       if (data?.data?.icon) {
-        data.data.icon = fixImageUrl(data.data.icon);
-      }
       return data;
     } catch (err) {
       return rejectWithValue(err.response?.data || err.message);

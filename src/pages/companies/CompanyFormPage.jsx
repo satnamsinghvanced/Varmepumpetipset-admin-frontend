@@ -65,9 +65,8 @@ const CompanyFormPage = () => {
     websiteAddress: "",
     extractor: "",
     brokerSites: "",
-    features: "",
-    totalRating: "",
-    averageRating: "",
+    // email: "",
+    // zipCode: "",
     companyImage: "",
     isRecommended: false,
     metaTitle: "",
@@ -150,12 +149,9 @@ const CompanyFormPage = () => {
         brokerSites: Array.isArray(selectedCompany.brokerSites)
           ? selectedCompany.brokerSites.join(", ")
           : "",
-        features: Array.isArray(selectedCompany.features)
-          ? selectedCompany.features.join(", ")
-          : "",
-        totalRating: selectedCompany.totalRating || 0,
-        averageRating: selectedCompany.averageRating || 0,
-        isRecommended: selectedCompany.isRecommended || false,
+        // email: selectedCompany.email || "",
+        // zipCode: selectedCompany.zipCode || "",
+         isRecommended: selectedCompany.isRecommended || false,
         companyImage: selectedCompany.companyImage || "",
 
         metaTitle: selectedCompany.metaTitle || "",
@@ -230,18 +226,18 @@ const CompanyFormPage = () => {
     return map[name] || name;
   }
 
-  const handleChange = (e) => {
-    const { name, type, checked, value } = e.target;
+const handleChange = (e) => {
+  const { name, type, checked, value } = e.target;
 
-    const newValue = type === "checkbox" ? checked : value;
+  const newValue = type === "checkbox" ? checked : value;
 
-    setForm((prev) => ({
-      ...prev,
-      [name]: newValue,
-    }));
+  setForm((prev) => ({
+    ...prev,
+    [name]: newValue,
+  }));
 
-    validateField(name, newValue);
-  };
+  validateField(name, newValue);
+};
 
   const handleImageChange = async (e) => {
     const file = e.target.files?.[0];
@@ -291,9 +287,8 @@ const CompanyFormPage = () => {
       address: form.address?.trim() || "",
       description: form.description || "",
       websiteAddress: form.websiteAddress?.trim() || "",
-      totalRating: form.totalRating || 0,
-      isRecommended :form.isRecommended || false ,
-      averageRating: form.averageRating || 0,
+      // email: form.email?.trim() || "",
+      // zipCode: form.zipCode?.trim() || "",
       companyImage: form.companyImage || "",
       extractor: form.extractor
         ? form.extractor
@@ -303,12 +298,6 @@ const CompanyFormPage = () => {
         : [],
       brokerSites: form.brokerSites
         ? form.brokerSites
-            .split(",")
-            .map((s) => s.trim())
-            .filter(Boolean)
-        : [],
-      features: form.features
-        ? form.features
             .split(",")
             .map((s) => s.trim())
             .filter(Boolean)
@@ -417,12 +406,8 @@ const CompanyFormPage = () => {
               { label: "Company Name", name: "companyName" },
               { label: "Website Address", name: "websiteAddress" },
               { label: "Address (Competitor)", name: "address" },
-              { label: "Total Rating", name: "totalRating", type: "number" },
-              {
-                label: "Average Rating",
-                name: "averageRating",
-                type: "number",
-              },
+              // { label: "Email", name: "email" },
+              // { label: "Zip Code", name: "zipCode" },
             ].map((field) => (
               <div key={field.name}>
                 <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
@@ -430,7 +415,6 @@ const CompanyFormPage = () => {
                   <span className="text-red-500">*</span>
                 </label>
                 <input
-                  type={field.type || "text"}
                   name={field.name}
                   value={form[field.name] ?? ""}
                   onChange={handleChange}
@@ -454,7 +438,6 @@ const CompanyFormPage = () => {
             {[
               { label: "Extractor Tags (Comma Separated)", name: "extractor" },
               { label: "Broker Sites (Comma Separated)", name: "brokerSites" },
-              { label: "Features", name: "features" },
             ].map((field) => (
               <div key={field.name}>
                 <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
@@ -472,7 +455,7 @@ const CompanyFormPage = () => {
             ))}
           </div>
 
-          {/* <div className="md:col-span-2">
+          <div className="md:col-span-2">
             <label
               htmlFor="isRecommended-toggle"
               className="flex items-center cursor-pointer pt-2"
@@ -504,7 +487,7 @@ const CompanyFormPage = () => {
                 Recommended Company
               </span>
             </label>
-          </div> */}
+          </div>
           <div className="mt-4">
             <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
               Description
