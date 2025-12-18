@@ -72,13 +72,23 @@ export const PartnerEditPage = () => {
         : [{ from: "", to: "" }],
     });
 
-    setWishes(
-      partnerDetail.wishes?.map((w) => ({
-        question:
-          typeof w.question === "object" ? w.question.question : w.question,
-        expectedAnswer: w.expectedAnswer || "",
-      })) || [{ question: "", expectedAnswer: "" }]
-    );
+    const normalizedWishes = partnerDetail.wishes?.map((w) => ({
+      question:
+        typeof w.question === "object" ? w.question.question : w.question,
+      expectedAnswer: Array.isArray(w.expectedAnswer)
+        ? w.expectedAnswer
+        : w.expectedAnswer || "",
+      options: [],
+    })) || [{ question: "", expectedAnswer: "", options: [] }];
+
+    setWishes(normalizedWishes);
+
+    // load options AFTER state is correct
+    normalizedWishes.forEach((w, index) => {
+      if (w.question) {
+        fetchOptionsForQuestion(w.question, index);
+      }
+    });
     partnerDetail.wishes?.forEach(async (w, index) => {
       const question =
         typeof w.question === "object" ? w.question.question : w.question;
@@ -121,24 +131,30 @@ export const PartnerEditPage = () => {
     const { name, value, checked, type } = e.target;
     setForm({ ...form, [name]: type === "checkbox" ? checked : value });
   };
-  const fetchOptionsForQuestion = async (question, index) => {
-    if (!question) return;
+ const fetchOptionsForQuestion = async (question, index) => {
+  if (!question) return;
 
-    try {
-      const res = await axios.get(
-        `${import.meta.env.VITE_API_URL}/partners/answer?question=${question}`
-      );
+  try {
+    const res = await axios.get(
+      `${import.meta.env.VITE_API_URL}/partners/answer?question=${question}`
+    );
 
-      const options = res.data?.options || [];
+    const options = res.data?.options || [];
 
-      // Attach options to that wish
-      const updated = [...wishes];
-      updated[index].options = options;
-setWishes(updated);
-    } catch (err) {
-      console.error("Failed to load options:", err);
-    }
-  };
+    setWishes((prev) => {
+      const updated = [...prev];
+      updated[index] = {
+        ...updated[index],
+        options, // ✅ keep expectedAnswer intact
+      };
+      return updated;
+    });
+  } catch (err) {
+    console.error("Failed to load options:", err);
+  }
+};
+
+
   const handleLeadTypeChange = (index, field, value) => {
     const updated = [...leadTypes];
     updated[index][field] = field === "price" ? Number(value) : value;
@@ -208,13 +224,17 @@ setWishes(updated);
     }
   };
 
+  const mergedQuestions = [{ question: "leadType" }, ...allQuestions].filter(
+    (q, i, arr) => arr.findIndex((x) => x.question === q.question) === i
+  );
+
   if (loading) return <p>Loading...</p>;
 
   return (
     <div className=" mx-auto">
       <div className="flex flex-col lg:flex-row w-full justify-between lg:items-center gap-5 mb-8">
         <div>
-          <h1 className="text-3xl font-bold">Edit Company</h1>
+          <h1 className="text-3xl font-bold">Edit Partner</h1>
           <p className="text-sm font-medium text-gray-600 mt-2">
             Update partner details.
           </p>
@@ -225,7 +245,7 @@ setWishes(updated);
             onClick={() => navigate("/partners")}
             className="btn btn-white btn-sm rounded-lg border-slate-300 text-slate-700 px-6 py-2"
           >
-            Back to Companies
+            Back to Partners
           </button>
         </div>
       </div>
@@ -444,7 +464,9 @@ setWishes(updated);
                 key={idx}
                 className="flex gap-3 mb-3 items-center p-3 rounded-xl"
               >
-                <label className="w-1/2 font-medium">{lt.typeId.formTitle}</label>
+                <label className="w-1/2 font-medium">
+                  {lt.typeId.formTitle}
+                </label>
                 <input
                   type="number"
                   value={lt.price}
@@ -482,17 +504,24 @@ setWishes(updated);
                     value={wish.question}
                     onChange={async (e) => {
                       const selectedQuestion = e.target.value;
-                      handleWishChange(index, "question", selectedQuestion);
+
+                      setWishes((prev) => {
+                        const updated = [...prev];
+                        updated[index] = {
+                          question: selectedQuestion,
+                          expectedAnswer: "",
+                          options: [],
+                        };
+                        return updated;
+                      });
+
                       await fetchOptionsForQuestion(selectedQuestion, index);
                     }}
                     className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
                   >
                     <option value="">Select question</option>
                     {/* <option value="postalCode">Postal Code</option> */}
-                    <option value="leadType">LeadType</option>
-
-
-                    {allQuestions.map((q, i) => (
+                    {mergedQuestions.map((q, i) => (
                       <option key={i} value={q.question}>
                         {q.question}
                       </option>

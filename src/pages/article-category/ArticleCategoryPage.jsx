@@ -40,7 +40,7 @@ export const ArticleCategoryPage = () => {
       await dispatch(deleteArticleCategory(categoryToDelete._id)).unwrap();
       setShowDeleteModal(false);
       fetchCategories();
-      // toast.success("Category deleted successfully");
+      toast.success("Category deleted successfully");
     } catch (err) {
       toast.error("Failed to delete");
     }

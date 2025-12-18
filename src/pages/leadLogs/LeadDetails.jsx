@@ -63,7 +63,7 @@ const LeadDetails = () => {
   }
 
   const values = selectedLead.dynamicFields?.[0]?.values || {};
-
+const leadLog = selectedLead.log ? JSON.parse(selectedLead.log) : null;
   return (
     <div className="space-y-6">
       <PageHeader
@@ -227,6 +227,38 @@ const LeadDetails = () => {
             })}
           </div>
         </div>
+{leadLog && (
+  <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-4 mt-6">
+    <p className="text-xs font-semibold uppercase text-slate-500 mb-2">
+      Lead Processing Log
+    </p>
+
+    {Object.entries(leadLog.steps || {}).map(([stepKey, step], idx) => (
+      <div key={idx} className="mb-4">
+        <p className="text-sm font-medium text-slate-700 mb-1">
+          {step.name} ({step.description})
+        </p>
+        <div className="ml-4 space-y-2 text-sm text-slate-600">
+          {step.log?.map((entry, i) => (
+            <div key={i} className="p-2 border border-slate-200 rounded bg-white">
+              {Object.entries(entry).map(([k, v]) => (
+                <p key={k}>
+                  <strong>{k}:</strong>{" "}
+                  {typeof v === "object" ? JSON.stringify(v) : String(v)}
+                </p>
+              ))}
+            </div>
+          ))}
+          {step.summary && (
+            <p className="mt-1 text-xs text-slate-500">
+              <strong>Summary:</strong> {JSON.stringify(step.summary)}
+            </p>
+          )}
+        </div>
+      </div>
+    ))}
+  </div>
+)}
 
         {/* Raw JSON */}
         {/* <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-inner">

@@ -4,6 +4,7 @@ import { AiTwotoneEdit } from "react-icons/ai";
 import { RiDeleteBin5Line } from "react-icons/ri";
 import { LuPlus } from "react-icons/lu";
 import { toast } from "react-toastify";
+import { FaRegEye } from "react-icons/fa";
 import { useNavigate } from "react-router";
 import PageHeader from "../../components/PageHeader";
 import Pagination from "../../UI/pagination";
@@ -129,6 +130,13 @@ export const CountyPage = () => {
                     <td className="px-6 py-4">{county.excerpt}</td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-center gap-2">
+                        <button
+                          className="rounded-full border border-slate-200 p-2 text-slate-500 hover:text-slate-900"
+                          onClick={() => navigate(`/county/${county._id}`)}
+                          title="Preview"
+                        >
+                          <FaRegEye size={16} />
+                        </button>
                         <button
                           className="rounded-full border p-2 text-slate-500 hover:text-slate-900"
                           onClick={() => navigate(`/county/${county._id}/edit`)}

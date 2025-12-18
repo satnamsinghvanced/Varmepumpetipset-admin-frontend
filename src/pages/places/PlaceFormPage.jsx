@@ -14,6 +14,7 @@ import {
 import { toast } from "react-toastify";
 import ImageUploader from "../../UI/ImageUpload";
 import { getCompaniesAll } from "../../store/slices/companySlice";
+import { RiDeleteBin5Line } from "react-icons/ri";
 
 const quillModules = {
   toolbar: [
@@ -65,6 +66,7 @@ const PlaceFormPage = () => {
   const { selectedPlace } = useSelector((state) => state.places || {});
   const { counties } = useSelector((state) => state.counties);
   const { allCompanies } = useSelector((state) => state.companies);
+  const [companySearch, setCompanySearch] = useState("");
   // console.log(counties, "test");
   const [form, setForm] = useState({
     name: "",
@@ -73,9 +75,10 @@ const PlaceFormPage = () => {
     excerpt: "",
     title: "",
     description: "",
-    isRecommended: false,
+    icon: "",
+    // isRecommended: false,
     rank: 0,
-    companiesId: [],
+    companies: [],
     metaTitle: "",
     metaDescription: "",
     metaKeywords: "",
@@ -103,7 +106,8 @@ const PlaceFormPage = () => {
       notranslate: false,
     },
   });
-
+  const [imageFile, setImageFile] = useState(null);
+  const [previewImage, setPreviewImage] = useState("");
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [showCompaniesDropdown, setShowCompaniesDropdown] = useState(false);
@@ -138,10 +142,14 @@ const PlaceFormPage = () => {
         excerpt: selectedPlace.excerpt || "",
         title: selectedPlace.title || "",
         description: selectedPlace.description || "",
-        isRecommended: selectedPlace.isRecommended || false,
+        // isRecommended: selectedPlace.isRecommended || false,
         rank: selectedPlace.rank || 0,
-        companiesId: Array.isArray(selectedPlace.companiesId)
-          ? selectedPlace.companiesId.map((id) => String(id))
+        companies: Array.isArray(selectedPlace.companies)
+          ? selectedPlace.companies.map((c, index) => ({
+              companyId: String(c.companyId._id || c.companyId),
+              rank: c.rank ?? index + 1,
+              isRecommended: !!c.isRecommended,
+            }))
           : [],
         metaTitle: selectedPlace.metaTitle || "",
         metaDescription: selectedPlace.metaDescription || "",
@@ -163,6 +171,7 @@ const PlaceFormPage = () => {
 
         robots: selectedPlace.robots,
       });
+      setPreviewImage(selectedPlace.icon || "");
     }
   }, [isEditMode, selectedPlace]);
 
@@ -195,18 +204,32 @@ const PlaceFormPage = () => {
       validateField(name, newValue);
     }
   };
+  const handleImageChange = (event) => {
+    const file = event.target.files?.[0];
+    setImageFile(file || null);
+    setPreviewImage(file ? URL.createObjectURL(file) : "");
 
+    // update form.icon to the new file (or URL if already uploaded)
+    setForm((prev) => ({
+      ...prev,
+      icon: file ? URL.createObjectURL(file) : "",
+    }));
+  };
   const buildPayload = () => ({
     name: form.name?.trim() || "",
     countyId: form.countyId || "",
     slug: form.slug?.trim() || "",
     excerpt: form.excerpt || "",
     title: form.title || "",
+    icon: form.icon || "",
     description: form.description || "",
-    isRecommended: form.isRecommended ,
+    // isRecommended: form.isRecommended ,
     rank: Number(form.rank) || 0,
-    companiesId: form.companiesId,
-
+    companies: form.companies.map((c, index) => ({
+      companyId: c.companyId,
+      rank: index + 1,
+      isRecommended: c.isRecommended,
+    })),
     metaTitle: form.metaTitle?.trim() || "",
     metaDescription: form.metaDescription?.trim() || "",
     metaKeywords: form.metaKeywords,
@@ -242,15 +265,53 @@ const PlaceFormPage = () => {
     setSubmitting(true);
 
     try {
-      const payload = buildPayload();
+      let payload;
+      let isFormData = false;
+
+      if (imageFile) {
+        // Use FormData when uploading a file
+        isFormData = true;
+        payload = new FormData();
+        payload.append("name", form.name);
+        payload.append("countyId", form.countyId);
+        payload.append("slug", form.slug);
+        payload.append("excerpt", form.excerpt);
+        payload.append("title", form.title);
+        payload.append("description", form.description);
+        payload.append("rank", form.rank);
+        payload.append("icon", imageFile);
+
+        // Append companies as JSON string
+        payload.append("companies", JSON.stringify(form.companies));
+
+        // SEO and OG
+        payload.append("metaTitle", form.metaTitle);
+        payload.append("metaDescription", form.metaDescription);
+        payload.append("metaKeywords", form.metaKeywords);
+        payload.append("metaImage", form.metaImage);
+        payload.append("canonicalUrl", form.canonicalUrl);
+        payload.append("jsonLd", form.jsonLd);
+        payload.append("ogTitle", form.ogTitle);
+        payload.append("ogDescription", form.ogDescription);
+        payload.append("ogImage", form.ogImage);
+        payload.append("ogType", form.ogType);
+
+        // Robots
+        payload.append("robots", JSON.stringify(form.robots));
+      } else {
+        // No file: normal JSON payload
+        payload = buildPayload();
+      }
 
       if (isEditMode) {
         await dispatch(
-          updatePlace({ id: placeId, placeData: payload })
+          updatePlace({ id: placeId, placeData: payload, isFormData })
         ).unwrap();
         toast.success("Place updated!");
       } else {
-        await dispatch(createPlace(payload)).unwrap();
+        await dispatch(
+          createPlace({ placeData: payload, isFormData })
+        ).unwrap();
         toast.success("Place created!");
       }
 
@@ -364,28 +425,29 @@ const PlaceFormPage = () => {
                 className="w-full border border-slate-200 rounded-xl px-3 py-2 mt-1 cursor-pointer"
                 onClick={() => setShowCompaniesDropdown((prev) => !prev)}
               >
-                {form.companiesId.length === 0 ? (
+                {form.companies.length === 0 ? (
                   <span className="text-slate-500 text-sm">
                     Select Companies
                   </span>
                 ) : (
                   <div className="flex flex-wrap gap-2">
-                    {form.companiesId.map((id) => {
-                      const company = allCompanies.find((c) => c._id === id);
+                    {form.companies.map((item) => {
+                       const company = allCompanies.find((c) => c._id === item.companyId);
+                      // console.log(company)
                       return (
                         <span
-                          key={id}
+                          key={item.companyId}
                           className="bg-gray-100 text-slate-700 px-2 py-1 text-xs rounded-lg flex items-center gap-1"
                         >
-                          {company?.companyName}
+                          {company?.companyName || "fsdf"}
                           <button
                             type="button"
                             onClick={(e) => {
                               e.stopPropagation();
                               setForm((prev) => ({
                                 ...prev,
-                                companiesId: prev.companiesId.filter(
-                                  (x) => x !== id
+                                companies: prev.companies.filter(
+                                  (x) => x !== item
                                 ),
                               }));
                             }}
@@ -402,45 +464,143 @@ const PlaceFormPage = () => {
 
               {/* Dropdown */}
               {showCompaniesDropdown && (
-                <div className="absolute z-20 mt-2 w-full max-h-64 overflow-y-auto bg-white border rounded-xl shadow">
-                  {allCompanies?.map((company) => (
-                    <label
-                      key={company._id}
-                      className="flex items-center gap-2 p-2 hover:bg-slate-100 cursor-pointer"
-                    >
-                      <input
-                        type="checkbox"
-                        className="!relative"
-                        checked={form.companiesId.includes(company._id)}
-                        onChange={(e) => {
-                          const id = company._id;
+                <div className="absolute z-20 mt-2 w-full max-h-64 overflow-y-auto bg-white border rounded-xl shadow p-2">
+                  {/* Search input */}
+                  <input
+                    type="text"
+                    placeholder="Search companies..."
+                    value={companySearch}
+                    onChange={(e) => setCompanySearch(e.target.value)}
+                    className="w-full mb-2 rounded border px-2 py-1 text-sm outline-none focus:border-primary"
+                  />
 
-                          let updated = [...form.companiesId];
-
-                          if (e.target.checked) {
-                            if (updated.length >= 10) {
-                              toast.info(
-                                "You can select a maximum of 10 companies."
+                  {/* Filtered list */}
+                  {allCompanies
+                    ?.filter((c) =>
+                      c.companyName
+                        .toLowerCase()
+                        .includes(companySearch.toLowerCase())
+                    )
+                    .map((company) => (
+                      <label
+                        key={company._id}
+                        className="flex items-center gap-2 p-2 hover:bg-slate-100 cursor-pointer rounded"
+                      >
+                        <input
+                          type="checkbox"
+                          className="!relative"
+                          checked={form.companies.some(
+                            (c) => c.companyId === company._id
+                          )}
+                          onChange={(e) => {
+                            let updated = [...form.companies];
+                            if (e.target.checked) {
+                              if (updated.length >= 10) {
+                                toast.info("Maximum 10 companies allowed");
+                                return;
+                              }
+                              updated.push({
+                                companyId: company._id,
+                                rank: updated.length + 1,
+                                isRecommended: false,
+                              });
+                            } else {
+                              updated = updated.filter(
+                                (c) => c.companyId !== company._id
                               );
-                              return;
                             }
-                            updated.push(id);
-                          } else {
-                            updated = updated.filter((item) => item !== id);
-                          }
-
-                          setForm((prev) => ({
-                            ...prev,
-                            companiesId: updated,
-                          }));
-                        }}
-                      />
-                      <span>{company.companyName}</span>
-                      {company.isRecommended && <span className="text-red-500">(Recommended)</span>}
-                    </label>
-                  ))}
+                            setForm((prev) => ({
+                              ...prev,
+                              companies: updated,
+                            }));
+                          }}
+                        />
+                        <span>{company.companyName}</span>
+                      </label>
+                    ))}
                 </div>
               )}
+
+              <h4 className="font-semibold mt-4">Selected Companies</h4>
+
+              <div className="space-y-2">
+                {form.companies.map((item, index) => {
+                  const company = allCompanies.find(
+                    (c) => c._id === item.companyId
+                  );
+
+                  return (
+                    <div
+                      key={item.companyId}
+                      className="flex items-center justify-between border rounded-lg p-2 bg-slate-50"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="text-sm font-medium">
+                          {index + 1}. {company?.companyName}
+                        </span>
+
+                        {/* Recommended */}
+                        <label className="flex items-center gap-1 text-xs">
+                          <input
+                            type="checkbox"
+                            className="!relative"
+                            checked={item.isRecommended}
+                            onChange={() => {
+                              const updated = [...form.companies];
+                              updated[index].isRecommended =
+                                !updated[index].isRecommended;
+                              setForm((prev) => ({
+                                ...prev,
+                                companies: updated,
+                              }));
+                            }}
+                          />
+                          Recommended
+                        </label>
+                      </div>
+
+                      {/* Reorder */}
+                      <div className="flex gap-1">
+                        <button
+                          type="button"
+                          disabled={index === 0}
+                          onClick={() => {
+                            const updated = [...form.companies];
+                            [updated[index - 1], updated[index]] = [
+                              updated[index],
+                              updated[index - 1],
+                            ];
+                            setForm((prev) => ({
+                              ...prev,
+                              companies: updated,
+                            }));
+                          }}
+                        >
+                          ↑
+                        </button>
+
+                        <button
+                          type="button"
+                          disabled={index === form.companies.length - 1}
+                          onClick={() => {
+                            const updated = [...form.companies];
+                            [updated[index], updated[index + 1]] = [
+                              updated[index + 1],
+                              updated[index],
+                            ];
+                            setForm((prev) => ({
+                              ...prev,
+                              companies: updated,
+                            }));
+                          }}
+                        >
+                          ↓
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
 
             {/* <div className="md:col-span-2">
@@ -506,6 +666,43 @@ const PlaceFormPage = () => {
                 className="rounded-2xl [&_.ql-container]:rounded-b-2xl [&_.ql-toolbar]:rounded-t-2xl"
               />
             </div>
+          </div>
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm mt-4">
+            <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+              Icon
+            </label>
+            {previewImage ? (
+              <div className="mt-3 rounded-2xl border border-slate-100 bg-slate-50/60 p-3">
+                <div className="relative">
+                  <img
+                    src={previewImage}
+                    alt="Preview"
+                    className="h-56 w-full rounded-xl object-cover"
+                  />
+                  <button
+                    type="button"
+                    className="absolute right-3 top-3 rounded-full bg-red-600 p-2 text-white shadow hover:bg-red-500"
+                    onClick={() => {
+                      setImageFile(null);
+                      setPreviewImage("");
+                    }}
+                    title="Remove image"
+                  >
+                    <RiDeleteBin5Line size={16} />
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <label className="mt-3 flex h-48 cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-200 text-sm text-slate-500 hover:border-slate-300">
+                <span>Click to upload</span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleImageChange}
+                />
+              </label>
+            )}
           </div>
 
           <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-6 mt-6">

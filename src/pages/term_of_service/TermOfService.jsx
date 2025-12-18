@@ -1,7 +1,7 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback } from "react";
 import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
-import { AiTwotoneEdit } from "react-icons/ai";
+import { AiTwotoneEdit, AiOutlinePlus } from "react-icons/ai";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
 
@@ -26,18 +26,9 @@ const modules = {
 };
 
 const formats = [
-  "header",
-  "bold",
-  "italic",
-  "underline",
-  "strike",
-  "list",
-  "bullet",
-  "blockquote",
-  "code-block",
-  "align",
-  "link",
-  "image",
+  "header", "bold", "italic", "underline", "strike",
+  "list", "bullet", "blockquote", "code-block",
+  "align", "link", "image",
 ];
 
 export const TermOfServicePage = () => {
@@ -46,11 +37,11 @@ export const TermOfServicePage = () => {
 
   const [isEditing, setIsEditing] = useState(false);
 
-  // CONTENT
+  // CONTENT STATE
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
 
-  // SEO FIELDS (Grouped like Privacy Policy)
+  // SEO FIELDS
   const [seo, setSeo] = useState({
     metaTitle: "",
     metaDescription: "",
@@ -76,18 +67,17 @@ export const TermOfServicePage = () => {
   const [tosId, setTosId] = useState(null);
   const [lastUpdated, setLastUpdated] = useState(null);
 
-  // FETCH TOS
+  // FETCH DATA
   useEffect(() => {
     dispatch(getAllTermOfService());
   }, [dispatch]);
 
-  // SET DATA IN FORM
+  // SYNC DATA FROM REDUX TO LOCAL STATE
   useEffect(() => {
     if (items && items.length > 0) {
       const data = items[0];
-
       setTosId(data._id);
-      setTitle(data.title || "");
+      setTitle(data.title || "Terms of Service");
       setContent(data.description || "");
       setLastUpdated(data.updatedAt || "");
 
@@ -99,7 +89,13 @@ export const TermOfServicePage = () => {
         ogTitle: data.ogTitle || "",
         ogDescription: data.ogDescription || "",
         ogImage: data.ogImage || "",
-        robots: data.robots || seo.robots,
+        robots: data.robots || {
+          noindex: false,
+          nofollow: false,
+          noarchive: false,
+          nosnippet: false,
+          notranslate: false,
+        },
         jsonLd: data.jsonLd || "",
         customHead: data.customHead || "",
         includeInSitemap: data.includeInSitemap ?? true,
@@ -109,12 +105,31 @@ export const TermOfServicePage = () => {
     }
   }, [items]);
 
-  // SAVE HANDLER
-  const handleSave = useCallback(async () => {
-    if (!tosId) {
-      toast.error("No Terms of Service found to update.");
-      return;
+  // HANDLER: INITIALIZE DEFAULT DATA
+  const handleCreateDefault = async () => {
+    try {
+      // If no ID exists, we pass a flag or handle logic to create
+      const res = await dispatch(
+        updateTermOfService({
+          id: "new", // Ensure your slice handles 'new' as a POST request
+          data: {
+            title: "Terms of Service",
+            description: "<h1>Terms of Service</h1><p>Start writing here...</p>",
+            ...seo,
+          },
+        })
+      ).unwrap();
+
+      toast.success("Page initialized successfully!");
+      dispatch(getAllTermOfService());
+    } catch (err) {
+      toast.error("Failed to initialize Terms of Service.");
     }
+  };
+
+  // HANDLER: SAVE CHANGES
+  const handleSave = useCallback(async () => {
+    if (!tosId) return;
 
     try {
       const res = await dispatch(
@@ -132,18 +147,38 @@ export const TermOfServicePage = () => {
       setIsEditing(false);
       dispatch(getAllTermOfService());
     } catch (err) {
-      console.error("Error updating Terms of Service:", err);
       toast.error("Failed to update Terms of Service.");
     }
   }, [dispatch, tosId, title, content, seo]);
 
-  if (loading) return <p>Loading...</p>;
-  if (!tosId) return <p>No Terms of Service found.</p>;
+  // LOADING STATE
+  if (loading) return <div className="p-10 text-center animate-pulse">Loading...</div>;
+
+  // EMPTY STATE (Default Button)
+  if (!tosId) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[70vh] bg-white border-2 border-dashed border-slate-200 rounded-2xl m-6">
+        <div className="bg-gray-100 p-4 rounded-full mb-4">
+            <AiOutlinePlus size={40} className="text-gray-400" />
+        </div>
+        <h2 className="text-xl font-semibold text-gray-800">No Terms of Service Found</h2>
+        <p className="text-gray-500 mb-6 max-w-sm text-center">
+          You haven't created a Terms of Service page yet. Click the button below to start with a default template.
+        </p>
+        <button
+          onClick={handleCreateDefault}
+          className="px-8 py-3 bg-[#161925] text-white rounded-lg hover:bg-black transition-all shadow-lg font-medium"
+        >
+          Create Default Page
+        </button>
+      </div>
+    );
+  }
 
   return (
-    <div className="h-full">
-      {/* HEADER */}
-      <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
+    <div className="h-full p-4">
+      {/* HEADER SECTION */}
+      <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-200">
         <div className="flex flex-col">
           <h1 className="text-2xl font-bold text-gray-800">{title}</h1>
           {lastUpdated && (
@@ -153,166 +188,130 @@ export const TermOfServicePage = () => {
           )}
         </div>
 
-        {/* EDIT BUTTONS */}
         {!isEditing ? (
-          <button onClick={() => setIsEditing(true)}>
+          <button 
+            onClick={() => setIsEditing(true)}
+            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+          >
             <AiTwotoneEdit size={22} className="text-[#161925]" />
           </button>
         ) : (
           <div className="flex gap-3">
             <button
               onClick={() => setIsEditing(false)}
-              className="px-4 py-2 border rounded-md"
+              className="px-4 py-2 border border-slate-300 rounded-md hover:bg-gray-50"
             >
               Cancel
             </button>
-
             <button
               onClick={handleSave}
-              className="px-4 py-2 bg-[#161925] text-white rounded-md"
+              className="px-4 py-2 bg-[#161925] text-white rounded-md hover:bg-black"
             >
-              Save
+              Save Changes
             </button>
           </div>
         )}
       </div>
 
-      {/* CONTENT + SEO */}
-      <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm space-y-10">
-        {/* VIEW MODE */}
+      {/* CONTENT & SEO BOX */}
+      <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-10">
         {!isEditing ? (
+          /* VIEW MODE */
           <>
-            {/* CONTENT */}
             <div
               className="prose max-w-none"
               dangerouslySetInnerHTML={{ __html: addCustomStyling(content) }}
             />
-
-            {/* SEO PREVIEW (same as Privacy Policy) */}
-            <div className="mt-10 space-y-2">
-              <h2 className="text-lg font-semibold">SEO Details</h2>
-
-              <p><strong>Meta Title:</strong> {seo.metaTitle}</p>
-              <p><strong>Meta Description:</strong> {seo.metaDescription}</p>
-              <p><strong>Meta Keywords:</strong> {seo.metaKeywords}</p>
-              <p><strong>Canonical:</strong> {seo.canonicalUrl}</p>
-              <p><strong>OG Title:</strong> {seo.ogTitle}</p>
-              <p><strong>OG Description:</strong> {seo.ogDescription}</p>
-
-              {seo.ogImage && (
-                <img src={seo.ogImage} className="h-32 mt-2 rounded" alt="" />
-              )}
-
-              <p className="mt-3"><strong>Robots:</strong></p>
-              {Object.entries(seo.robots).map(([k, v]) => (
-                <p key={k}>{k}: {v ? "true" : "false"}</p>
-              ))}
+            <hr />
+            <div className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+              <div className="space-y-2">
+                <h2 className="text-lg font-semibold col-span-2">SEO Preview</h2>
+                <p><strong>Meta Title:</strong> {seo.metaTitle}</p>
+                <p><strong>Meta Description:</strong> {seo.metaDescription}</p>
+                <p><strong>Canonical:</strong> {seo.canonicalUrl}</p>
+              </div>
+              <div>
+                 <p className="font-semibold">Robots Settings:</p>
+                 <div className="flex flex-wrap gap-2 mt-2">
+                    {Object.entries(seo.robots).map(([k, v]) => (
+                        <span key={k} className={`px-2 py-1 rounded text-[10px] uppercase font-bold `}>
+                            {k}: {v ? "Yes" : "No"}
+                        </span>
+                    ))}
+                 </div>
+              </div>
             </div>
           </>
         ) : (
-          <>
-            {/* TITLE */}
-            <input
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="w-full border p-2 rounded mb-4"
-              placeholder="Page Title"
-            />
-
-            {/* QUILL EDITOR */}
-            <ReactQuill
-              theme="snow"
-              value={content}
-              onChange={setContent}
-              modules={modules}
-              formats={formats}
-            />
-
-            {/* SEO FORM (same layout as Privacy Policy) */}
-            <div className="mt-10 space-y-3">
-              <h2 className="text-lg font-semibold">SEO Settings</h2>
-
+          /* EDIT MODE */
+          <div className="space-y-6">
+            <div>
+              <label className="block text-sm font-medium mb-1">Page Title</label>
               <input
-                placeholder="Meta Title"
-                value={seo.metaTitle}
-                onChange={(e) => setSeo({ ...seo, metaTitle: e.target.value })}
-                className="w-full border p-2 rounded"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className="w-full border border-slate-200 p-2 rounded focus:ring-2 focus:ring-[#161925] outline-none transition-all"
+                placeholder="Page Title"
               />
-
-              <textarea
-                placeholder="Meta Description"
-                value={seo.metaDescription}
-                onChange={(e) =>
-                  setSeo({ ...seo, metaDescription: e.target.value })
-                }
-                className="w-full border p-2 rounded"
-              />
-
-              <input
-                placeholder="Meta Keywords"
-                value={seo.metaKeywords}
-                onChange={(e) =>
-                  setSeo({ ...seo, metaKeywords: e.target.value })
-                }
-                className="w-full border p-2 rounded"
-              />
-
-              <input
-                placeholder="Canonical URL"
-                value={seo.canonicalUrl}
-                onChange={(e) =>
-                  setSeo({ ...seo, canonicalUrl: e.target.value })
-                }
-                className="w-full border p-2 rounded"
-              />
-
-              <h3 className="font-semibold">Open Graph (OG)</h3>
-
-              <input
-                placeholder="OG Title"
-                value={seo.ogTitle}
-                onChange={(e) => setSeo({ ...seo, ogTitle: e.target.value })}
-                className="w-full border p-2 rounded"
-              />
-
-              <input
-                placeholder="OG Description"
-                value={seo.ogDescription}
-                onChange={(e) =>
-                  setSeo({ ...seo, ogDescription: e.target.value })
-                }
-                className="w-full border p-2 rounded"
-              />
-
-              <input
-                placeholder="OG Image URL"
-                value={seo.ogImage}
-                onChange={(e) => setSeo({ ...seo, ogImage: e.target.value })}
-                className="w-full border p-2 rounded"
-              />
-
-              {/* ROBOTS CHECKBOXES */}
-              <h3 className="font-semibold">Robots</h3>
-
-              {Object.keys(seo.robots).map((key) => (
-                <label key={key} className="flex items-center gap-2">
-                  <input
-                  
-                    type="checkbox"
-                      className="!relative"
-                    checked={seo.robots[key]}
-                    onChange={(e) =>
-                      setSeo({
-                        ...seo,
-                        robots: { ...seo.robots, [key]: e.target.checked },
-                      })
-                    }
-                  />
-                  {key}
-                </label>
-              ))}
             </div>
-          </>
+
+            <div>
+              <label className="block text-sm font-medium mb-1">Main Content</label>
+              <ReactQuill
+                theme="snow"
+                value={content}
+                onChange={setContent}
+                modules={modules}
+                formats={formats}
+                className="bg-white"
+              />
+            </div>
+
+            {/* SEO FORM */}
+            <div className="bg-gray-50 p-4 rounded-lg space-y-4">
+              <h2 className="text-lg font-semibold border border-slate-200 pb-2">SEO & Metadata</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <input
+                  placeholder="Meta Title"
+                  value={seo.metaTitle}
+                  onChange={(e) => setSeo({ ...seo, metaTitle: e.target.value })}
+                  className="border  border-slate-200 p-2 rounded"
+                />
+                <input
+                  placeholder="Canonical URL"
+                  value={seo.canonicalUrl}
+                  onChange={(e) => setSeo({ ...seo, canonicalUrl: e.target.value })}
+                  className="border border-slate-200 p-2 rounded"
+                />
+                <textarea
+                  placeholder="Meta Description"
+                  value={seo.metaDescription}
+                  onChange={(e) => setSeo({ ...seo, metaDescription: e.target.value })}
+                  className="border border-slate-200 p-2 rounded md:col-span-2 h-20"
+                />
+              </div>
+
+              <h3 className="font-semibold mt-4">Robots Control</h3>
+              <div className="flex flex-wrap gap-4">
+                {Object.keys(seo.robots).map((key) => (
+                  <label key={key} className="flex items-center gap-2 cursor-pointer bg-white px-3 py-1 rounded border border-slate-200 hover:bg-gray-100">
+                    <input
+                      type="checkbox"
+                      className="w-4 h-4"
+                      checked={seo.robots[key]}
+                      onChange={(e) =>
+                        setSeo({
+                          ...seo,
+                          robots: { ...seo.robots, [key]: e.target.checked },
+                        })
+                      }
+                    />
+                    <span className="capitalize">{key}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          </div>
         )}
       </div>
     </div>
