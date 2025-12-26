@@ -1,14 +1,12 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "axios";
+import api from "../../api/axios";
 import { toast } from "react-toastify";
-
-const BASE_URL = import.meta.env.VITE_API_URL;
 
 export const getCategories = createAsyncThunk(
   "categories/getCategories",
   async ({ page = 1, limit = 10, search = "" }, { rejectWithValue }) => {
     try {
-      const response = await axios.get(`${BASE_URL}/article-categories`, {
+      const response = await api.get(`/article-categories`, {
         params: { page, limit, search },
       });
       return response.data; // contains data + pagination info
@@ -21,7 +19,7 @@ export const getCategoriesAll = createAsyncThunk(
   "categories/getCategoriesAll",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axios.get(`${BASE_URL}/article-categories/all`);
+      const response = await api.get(`/article-categories/all`);
       return response.data; // contains data + pagination info
     } catch (err) {
       return rejectWithValue(err.response?.data || err.message);
@@ -32,9 +30,7 @@ export const getCategoryById = createAsyncThunk(
   "categories/getCategoryById",
   async (id, { rejectWithValue }) => {
     try {
-      const response = await axios.get(
-        `${BASE_URL}/article-categories/details/${id}`
-      );
+      const response = await api.get(`/article-categories/details/${id}`);
       return response.data.data;
     } catch (err) {
       return rejectWithValue(err.response?.data || err.message);
@@ -45,8 +41,8 @@ export const updateCategory = createAsyncThunk(
   "categories/updateCategory",
   async ({ id, categoryData }, { rejectWithValue }) => {
     try {
-      const response = await axios.put(
-        `${BASE_URL}/article-categories/update/${id}`,
+      const response = await api.put(
+        `/article-categories/update/${id}`,
         categoryData
       );
       toast.success(response?.data?.message || "Category updated successfully");
@@ -60,8 +56,8 @@ export const createCategory = createAsyncThunk(
   "categories/createCategory",
   async (categoryData, { rejectWithValue }) => {
     try {
-      const response = await axios.post(
-        `${BASE_URL}/article-categories/create`,
+      const response = await api.post(
+        `/article-categories/create`,
         categoryData
       );
       toast.success(response?.data?.message || "Category created successfully");
@@ -75,9 +71,7 @@ export const deleteArticleCategory = createAsyncThunk(
   "categories/deleteArticleCategory",
   async (id, { rejectWithValue }) => {
     try {
-      const res = await axios.delete(
-        `${BASE_URL}/article-categories/delete/${id}`
-      );
+      const res = await api.delete(`/article-categories/delete/${id}`);
       toast.success(res.data.message || "Category deleted successfully!");
       return id;
     } catch (err) {
@@ -193,7 +187,11 @@ const categorySlice = createSlice({
       });
   },
 });
-export const { clearSelectedCategory, clearError, setCategories , setCategoriesAll } =
-  categorySlice.actions;
+export const {
+  clearSelectedCategory,
+  clearError,
+  setCategories,
+  setCategoriesAll,
+} = categorySlice.actions;
 
 export default categorySlice.reducer;

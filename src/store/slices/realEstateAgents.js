@@ -1,14 +1,12 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "axios";
+import api from "../../api/axios";
 import { toast } from "react-toastify";
-
-const BASE_URL = import.meta.env.VITE_API_URL;
 
 export const getAgents = createAsyncThunk(
   "agents/getAgents",
   async (_, { rejectWithValue }) => {
     try {
-      const { data } = await axios.get(`${BASE_URL}/real-estate-agent/`);
+      const { data } = await api.get(`/real-estate-agent/`);
       // console.log(data)
       return data;
     } catch (err) {
@@ -21,7 +19,7 @@ export const getAgentById = createAsyncThunk(
   "agents/getAgentById",
   async (id, { rejectWithValue }) => {
     try {
-      const { data } = await axios.get(`${BASE_URL}/real-estate-agent/${id}`);
+      const { data } = await api.get(`/real-estate-agent/${id}`);
       return data;
     } catch (err) {
       return rejectWithValue(err.response?.data || err.message);
@@ -33,10 +31,7 @@ export const createAgent = createAsyncThunk(
   "agents/createAgent",
   async (agentData, { rejectWithValue }) => {
     try {
-      const { data } = await axios.post(
-        `${BASE_URL}/real-estate-agent/create`,
-        agentData
-      );
+      const { data } = await api.post(`/real-estate-agent/create`, agentData);
       toast.success(data.message || "Agent created successfully");
       return data.data;
     } catch (err) {
@@ -50,8 +45,8 @@ export const updateAgent = createAsyncThunk(
   "agents/updateAgent",
   async ({ id, agentData }, { rejectWithValue }) => {
     try {
-      const { data } = await axios.put(
-        `${BASE_URL}/real-estate-agent/update/${id}`,
+      const { data } = await api.put(
+        `/real-estate-agent/update/${id}`,
         agentData
       );
       toast.success(data.message || "Agent updated successfully");
@@ -67,9 +62,7 @@ export const deleteAgent = createAsyncThunk(
   "agents/deleteAgent",
   async (id, { rejectWithValue }) => {
     try {
-      const { data } = await axios.delete(
-        `${BASE_URL}/real-estate-agent/delete/${id}`
-      );
+      const { data } = await api.delete(`/real-estate-agent/delete/${id}`);
       toast.success(data.message || "Agent deleted successfully");
       return id;
     } catch (err) {
@@ -113,9 +106,9 @@ const realEstateAgentSlice = createSlice({
         state.error = action.payload;
       })
 
-       .addCase(getAgentById.pending, (state) => {
+      .addCase(getAgentById.pending, (state) => {
         state.loading = true;
-        state.selectedAgent = null; 
+        state.selectedAgent = null;
       })
       .addCase(getAgentById.fulfilled, (state, action) => {
         state.loading = false;

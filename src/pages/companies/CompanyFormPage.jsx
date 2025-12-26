@@ -34,7 +34,6 @@ const quillFormats = [
   "underline",
   "strike",
   "list",
-  "bullet",
   "blockquote",
   "code-block",
   "align",
@@ -292,7 +291,7 @@ const CompanyFormPage = () => {
       description: form.description || "",
       websiteAddress: form.websiteAddress?.trim() || "",
       totalRating: form.totalRating || 0,
-      isRecommended :form.isRecommended || false ,
+      isRecommended: form.isRecommended || false,
       averageRating: form.averageRating || 0,
       companyImage: form.companyImage || "",
       extractor: form.extractor
@@ -506,18 +505,35 @@ const CompanyFormPage = () => {
             </label>
           </div> */}
           <div className="mt-4">
-            <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+            <label className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
               Description
+              {/* Tooltip */}
+              <span className="relative flex items-center group">
+                <span className="flex h-4 w-4 items-center justify-center rounded-full border border-slate-300 text-[10px] font-bold text-slate-500 cursor-pointer select-none">
+                  i
+                </span>
+
+                {/* Tooltip content */}
+                <span className="pointer-events-none absolute left-1/2 top-full z-20 mt-2 w-72 -translate-x-1/2 rounded-lg bg-slate-900 px-3 py-2 text-xs font-normal text-white opacity-0 shadow-xl transition-opacity duration-200 group-hover:opacity-100">
+                  Please use <i>##</i> for H2 tags and <i>#</i> for H3 tags. The
+                  remaining text should stay unchanged, and please ensure the
+                  content matches what is provided in the CSV file.
+                </span>
+              </span>
             </label>
+
             <div className="mt-2 rounded-2xl border border-slate-200 p-1">
-              <ReactQuill
+              <textarea
+                name="description"
                 value={form.description}
-                onChange={(value) =>
-                  setForm((prev) => ({ ...prev, description: value }))
+                onChange={(e) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    description: e.target.value,
+                  }))
                 }
-                modules={quillModules}
-                formats={quillFormats}
-                className="rounded-2xl [&_.ql-container]:rounded-b-2xl [&_.ql-toolbar]:rounded-t-2xl"
+                rows={10}
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-primary focus:ring-2 focus:ring-secondary"
               />
             </div>
           </div>
@@ -530,9 +546,15 @@ const CompanyFormPage = () => {
               <div className="mt-3 rounded-2xl border border-slate-100 bg-slate-50/60 p-3">
                 <div className="relative">
                   <img
-                    src={`${
-                      import.meta.env.VITE_API_URL_IMAGE
-                    }/${previewImage}`}
+                    src={
+                      typeof previewImage === "string"
+                        ? previewImage.startsWith("http")
+                          ? previewImage
+                          : `${
+                              import.meta.env.VITE_API_URL_IMAGE
+                            }/${previewImage.replace(/^\//, "")}`
+                        : ""
+                    }
                     alt="Preview"
                     className="h-56 w-full rounded-xl object-cover"
                   />

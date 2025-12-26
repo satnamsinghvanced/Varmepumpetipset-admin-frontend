@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import axios from "axios";
+import api from "../../api/axios";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { createPartner } from "../../store/slices/partnersSlice";
@@ -29,7 +29,7 @@ export const AddPartnerPage = () => {
   const [allQuestions, setAllQuestions] = useState([]);
 
   useEffect(() => {
-    axios
+    api
       .get(`${import.meta.env.VITE_API_URL}/partners/questions`)
       .then((res) => {
         setAllQuestions(res.data?.questions || []);
@@ -40,7 +40,7 @@ export const AddPartnerPage = () => {
   }, []);
 
   useEffect(() => {
-    axios
+    api
       .get(`${import.meta.env.VITE_API_URL}/form-select`)
       .then((res) => {
         const list = res.data?.data || [];
@@ -60,7 +60,7 @@ export const AddPartnerPage = () => {
     if (!question) return;
 
     try {
-      const res = await axios.get(
+      const res = await api.get(
         `${import.meta.env.VITE_API_URL}/partners/answer?question=${question}`
       );
 
@@ -257,7 +257,7 @@ export const AddPartnerPage = () => {
             </div>
             <div>
               <label className="text-sm font-semibold text-slate-700">
-                Total Leads
+                Monthly Lead Limit
               </label>
               <input
                 type="number"

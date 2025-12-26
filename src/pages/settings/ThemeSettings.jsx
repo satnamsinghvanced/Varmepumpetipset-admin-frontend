@@ -1,10 +1,9 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { AiTwotoneEdit } from "react-icons/ai";
+import { AiTwotoneEdit, AiOutlineCloudUpload, AiOutlineUndo } from "react-icons/ai";
 import { RiDeleteBin5Line } from "react-icons/ri";
 import { FiSave } from "react-icons/fi";
 import { IoCheckmarkDoneOutline } from "react-icons/io5";
-import { AiOutlineUndo } from "react-icons/ai";
 import Swal from "sweetalert2";
 import { toast } from "react-toastify";
 
@@ -197,64 +196,111 @@ const ThemeSettings = () => {
       <div className="bg-white rounded-2xl p-8 shadow-md relative space-y-8">
         <div>
           <div className="flex justify-between items-center mb-4">
-            <h4 className="font-bold text-xl">Logo's Settings</h4>
+            <div className="flex items-center gap-4">
+              <h4 className="font-bold text-xl">Logo's Settings</h4>
+              {/* <button
+                onClick={() => setEditingLogos(!editingLogos)}
+                className={`text-xs px-3 py-1 rounded-full border transition ${
+                  editingLogos
+                    ? "bg-blue-100 text-blue-700 border-blue-200"
+                    : "bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200"
+                }`}
+              >
+                {editingLogos ? "Hide Text Fields" : "Edit Wordmark Text"}
+              </button> */}
+            </div>
             {loading && <span className="text-xs text-blue-400">Loading...</span>}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {[
               { key: "logo", label: "Logo", type: "image", required: true },
-              { key: "logoDark", label: "Logo Dark", type: "image", required: false },
+              { key: "logoDark", label: "Admin Dashboard Logo", type: "image", required: false },
               { key: "wordmark", label: "Wordmark", type: "image+text", required: true },
-              { key: "wordmarkDark", label: "Wordmark Dark", type: "image+text", required: false },
-              { key: "lettermark", label: "Lettermark", type: "image", required: false },
-              { key: "tagline", label: "Tagline", type: "image", required: false },
+              // { key: "wordmarkDark", label: "Wordmark Dark", type: "image+text", required: false },
+              // { key: "lettermark", label: "Lettermark", type: "image", required: false },
+              // { key: "tagline", label: "Tagline", type: "image", required: false },
             ].map(({ key, label, type, required }) => (
               <div
                 key={key}
-                className="p-5 border border-gray-300 rounded-lg bg-gray-50"
+                className="p-5 border border-gray-300 rounded-lg bg-white"
               >
                 <h3 className="font-semibold text-[16px] mb-2">
                   {label} {required && <span className="text-red-600">*</span>}
                 </h3>
                 {type.includes("image") && (
-                  <div className="mb-2 flex items-center gap-2">
+                  <div className="mb-2 flex items-center flex-wrap gap-4">
                     {logos &&
                       logos[key] &&
                       !removedLogos[key] &&
                       !logoFiles[key] && (
-                        <img
-                          src={`${IMAGE_URL}${logos[key].replaceAll("\\", "/")}`}
-                          alt={label}
-                          className="h-16"
-                        />
+                        <div className="relative group">
+                          <img
+                            src={`${IMAGE_URL}${logos[key].replaceAll("\\", "/")}`}
+                            alt={label}
+                            className="h-16 w-auto object-contain border border-gray-300 rounded p-1 bg-white"
+                          />
+                          {/* <button
+                            type="button"
+                            onClick={() => setRemovedLogos(prev => ({ ...prev, [key]: true }))}
+                            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition shadow-lg"
+                            title="Remove Logo"
+                          >
+                            <RiDeleteBin5Line className="w-3 h-3" />
+                          </button> */}
+                        </div>
                       )}
+
                     {logoFiles[key] && (
-                      <img
-                        src={URL.createObjectURL(logoFiles[key])}
-                        alt={label}
-                        className="h-16"
-                      />
+                      <div className="relative group">
+                        <img
+                          src={URL.createObjectURL(logoFiles[key])}
+                          alt={label}
+                          className="h-16 w-auto object-contain border rounded p-1 bg-white shadow-sm"
+                        />
+                        {/* <button
+                          type="button"
+                          onClick={() => handleLogoChange(key, null)}
+                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 transition shadow-lg"
+                          title="Cancel selection"
+                        >
+                          <RiDeleteBin5Line className="w-3 h-3" />
+                        </button> */}
+                      </div>
                     )}
-                    <input
-                      type="file"
-                      className="w-full"
-                      accept="image/*"
-                      onChange={(e) => handleLogoChange(key, e.target.files[0])}
-                    />
+
+                    {!logoFiles[key] && (removedLogos[key] || !(logos && logos[key])) && (
+                       <div className="text-xs text-gray-400 italic">No image selected</div>
+                    )}
+
+                    <div className="relative">
+                      <label className="flex items-center gap-2 bg-[#161925] text-white px-4 py-2 rounded-lg cursor-pointer hover:bg-black transition-all shadow-sm">
+                        <AiOutlineCloudUpload className="w-5 h-5" />
+                        <span className="text-sm font-medium">Choose Image</span>
+                        <input
+                          type="file"
+                          className="absolute inset-0 opacity-0 cursor-pointer"
+                          accept="image/*"
+                          onChange={(e) => handleLogoChange(key, e.target.files[0])}
+                        />
+                      </label>
+                    </div>
                   </div>
                 )}
                 {type.includes("text") && editingLogos && (
-                  <input
-                    type="text"
-                    placeholder="Enter text"
-                    value={wordmarkText[key] || ""}
-                    disabled={logoFiles[key]}
-                    onChange={(e) =>
-                      handleWordmarkTextChange(key, e.target.value)
-                    }
-                    className="border p-2 w-full rounded"
-                  />
+                  <div className="mt-3">
+                    <label className="block text-[10px] uppercase text-gray-400 mb-1 font-bold">Text Alternative</label>
+                    <input
+                      type="text"
+                      placeholder="Enter text (e.g. Brand Name)"
+                      value={wordmarkText[key] || ""}
+                      disabled={logoFiles[key]}
+                      onChange={(e) =>
+                        handleWordmarkTextChange(key, e.target.value)
+                      }
+                      className="border border-gray-300 p-2.5 w-full rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition bg-white"
+                    />
+                  </div>
                 )}
               </div>
             ))}

@@ -1,20 +1,20 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "axios";
+import api from "../../api/axios";
 
-const BASE_URL = import.meta.env.VITE_API_URL;
 const IMAGE_URL = import.meta.env.VITE_API_URL_IMAGE;
-const token = localStorage.getItem("token");
 
 const fixImageUrl = (url) => {
-  if (!url) return null;
+  if (!url || typeof url !== "string") return url;
   return url.startsWith("http") ? url : `${IMAGE_URL}${url}`;
 };
 
 export const getArticles = createAsyncThunk(
   "articles/getArticles",
-  async ({ page = 1, limit = 10,search ="" } = {}, { rejectWithValue }) => {
+  async ({ page = 1, limit = 10, search = "" } = {}, { rejectWithValue }) => {
     try {
-      const res = await axios.get(`${BASE_URL}/article?page=${page}&limit=${limit}&search=${search}`);
+      const res = await api.get(
+        `/article?page=${page}&limit=${limit}&search=${search}`
+      );
       return {
         data: res.data.data.map((item) => ({
           ...item,
@@ -32,7 +32,7 @@ export const getArticleById = createAsyncThunk(
   "articles/getArticleById",
   async (id, { rejectWithValue }) => {
     try {
-      const res = await axios.get(`${BASE_URL}/article/${id}`);
+      const res = await api.get(`/article/${id}`);
       return { ...res.data.data, image: fixImageUrl(res.data.data.image) };
     } catch (err) {
       return rejectWithValue(err.response?.data || err.message);
@@ -44,8 +44,10 @@ export const createArticle = createAsyncThunk(
   "articles/createArticle",
   async (formData, { rejectWithValue }) => {
     try {
-      const res = await axios.post(`${BASE_URL}/article/create`, formData, {
-        headers: { "Content-Type": "multipart/form-data",  Authorization: `${token}` },
+      const res = await api.post(`/article/create`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
       });
       return { ...res.data.data, image: fixImageUrl(res.data.data.image) };
     } catch (err) {
@@ -58,7 +60,7 @@ export const updateArticle = createAsyncThunk(
   "articles/updateArticle",
   async ({ id, formData }, { rejectWithValue }) => {
     try {
-      const res = await axios.put(`${BASE_URL}/article/update/${id}`, formData, {
+      const res = await api.put(`/article/update/${id}`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
       return { ...res.data.data, image: fixImageUrl(res.data.data.image) };
@@ -72,14 +74,16 @@ export const deleteArticle = createAsyncThunk(
   "articles/deleteArticle",
   async (id, { rejectWithValue }) => {
     try {
-      const res = await axios.delete(`${BASE_URL}/article/delete/${id}`);
-      return { id, message: res?.data?.message || "Article deleted successfully" };
+      const res = await api.delete(`/article/delete/${id}`);
+      return {
+        id,
+        message: res?.data?.message || "Article deleted successfully",
+      };
     } catch (err) {
       return rejectWithValue(err.response?.data || err.message);
     }
   }
 );
-
 
 const articleSlice = createSlice({
   name: "articles",
@@ -123,7 +127,9 @@ const articleSlice = createSlice({
       })
 
       .addCase(updateArticle.fulfilled, (state, action) => {
-        const i = state.articles.data.findIndex((a) => a._id === action.payload._id);
+        const i = state.articles.data.findIndex(
+          (a) => a._id === action.payload._id
+        );
         if (i !== -1) state.articles.data[i] = action.payload;
       })
 

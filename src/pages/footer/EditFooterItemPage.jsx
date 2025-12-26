@@ -5,7 +5,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import PageHeader from "../../components/PageHeader";
 import { fetchFooter, updateFooter } from "../../store/slices/footerSlice";
-import { useRef } from "react";
+
 
 const EMPTY_TAB_DATA = {
   articles: { title: "", href: "" },
@@ -42,18 +42,38 @@ const EMPTY_TAB_DATA = {
 
 const singleObjectTabs = ["header", "address"];
 
+const getFormData = (footer, tab, index) => {
+  if (!footer) return null;
+  if (!EMPTY_TAB_DATA[tab]) return null;
+
+  // Single object tabs
+  if (singleObjectTabs.includes(tab)) {
+    return footer?.[tab] || EMPTY_TAB_DATA[tab];
+  } else {
+    // Array tabs
+    const arr = footer?.[tab] || [];
+    if (index === undefined) {
+      return EMPTY_TAB_DATA[tab];
+    } else {
+      const idx = parseInt(index, 10);
+      return arr[idx] || EMPTY_TAB_DATA[tab];
+    }
+  }
+};
+
 const EditFooterItemPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { tab, index } = useParams();
-const initializedRef = useRef(false);
+
   // ✅ IMPORTANT: get REAL footer object (no destructuring)
   const footer = useSelector((state) => state.footer?.footer);
 
-  const [form, setForm] = useState(null);
+  // Initialize form synchronously if footer is available
+  const [form, setForm] = useState(() => getFormData(footer, tab, index));
 
   // ----------------------------
-  // Load footer
+  // Load footer if missing
   // ----------------------------
   useEffect(() => {
     if (!footer || Object.keys(footer).length === 0) {
@@ -62,38 +82,21 @@ const initializedRef = useRef(false);
   }, [footer, dispatch]);
 
   // ----------------------------
-  // Prepare form
+  // Update form when footer or params change
   // ----------------------------
-useEffect(() => {
-  if (!footer) return;
-  if (initializedRef.current) return;
-
-  if (!EMPTY_TAB_DATA[tab]) {
-    toast.error("Invalid footer section");
-    navigate("/footer");
-    return;
-  }
-
-  // Single object tabs
-  if (singleObjectTabs.includes(tab)) {
-    setForm(footer?.[tab] || EMPTY_TAB_DATA[tab]);
-  } else {
-    const arr = footer?.[tab] || [];
-
-    if (index === undefined) {
-      setForm(EMPTY_TAB_DATA[tab]);
-    } else {
-      const idx = parseInt(index, 10);
-      setForm(arr[idx] || EMPTY_TAB_DATA[tab]);
+  useEffect(() => {
+    const newData = getFormData(footer, tab, index);
+    // Only update if we have data (to avoid resetting to null if footer is fetching)
+    // But if footer is loaded and newData is null (invalid tab), we might want to handle that.
+    
+    if (newData) {
+       setForm(newData);
+    } else if (footer && !EMPTY_TAB_DATA[tab]) {
+       // Invalid tab case handled in strict effect previously
+       toast.error("Invalid footer section");
+       navigate("/footer");
     }
-  }
-
-  initializedRef.current = true;
-}, [footer, tab, index, navigate]);
- useEffect(() => {
-  initializedRef.current = false;
-  setForm(null);
-}, [tab, index]);
+  }, [footer, tab, index, navigate]);
 
   // ----------------------------
   // Save

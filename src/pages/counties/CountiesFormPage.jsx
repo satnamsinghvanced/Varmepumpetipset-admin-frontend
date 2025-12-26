@@ -32,7 +32,6 @@ const quillFormats = [
   "underline",
   "strike",
   "list",
-  "bullet",
   "blockquote",
   "code-block",
   "align",
@@ -62,7 +61,7 @@ const CountiesFormPage = () => {
     loading: citiesLoading,
     selectedCounty,
   } = useSelector((state) => state.counties || {});
-  const { allCompanies } = useSelector((state) => state.companies);
+   const { allCompanies } = useSelector((state) => state.companies);
     const [companySearch, setCompanySearch] = useState("");
 
   const [form, setForm] = useState({
@@ -153,14 +152,7 @@ const CountiesFormPage = () => {
         ogImage: selectedCounty.ogImage || "",
         ogType: selectedCounty.ogType || "website",
 
-        robots: selectedCounty.robots || {
-          noindex: false,
-          nofollow: false,
-          noarchive: false,
-          nosnippet: false,
-          noimageindex: false,
-          notranslate: false,
-        },
+       robots: selectedCounty.robots,
       });
 
       setPreviewImage(selectedCounty.icon || "");
@@ -580,22 +572,39 @@ const CountiesFormPage = () => {
               </label>
             )}
           </div>
-           <div className="mt-4">
-                      <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                        Description
-                      </label>
-                      <div className="mt-2 rounded-2xl border border-slate-200 p-1">
-                        <ReactQuill
-                          value={form.description}
-                          onChange={(value) =>
-                            setForm((prev) => ({ ...prev, description: value }))
-                          }
-                          modules={quillModules}
-                          formats={quillFormats}
-                          className="rounded-2xl [&_.ql-container]:rounded-b-2xl [&_.ql-toolbar]:rounded-t-2xl"
-                        />
-                      </div>
-                    </div>
+          <div className="mt-4">
+            <label className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+              Description
+              {/* Tooltip */}
+              <span className="relative flex items-center group">
+                <span className="flex h-4 w-4 items-center justify-center rounded-full border border-slate-300 text-[10px] font-bold text-slate-500 cursor-pointer select-none">
+                  i
+                </span>
+
+                {/* Tooltip content */}
+                <span className="pointer-events-none absolute left-1/2 top-full z-20 mt-2 w-72 -translate-x-1/2 rounded-lg bg-slate-900 px-3 py-2 text-xs font-normal text-white opacity-0 shadow-xl transition-opacity duration-200 group-hover:opacity-100">
+                  Please use <i>##</i> for H2 tags and <i>#</i> for H3 tags. The
+                  remaining text should stay unchanged, and please ensure the
+                  content matches what is provided in the CSV file.
+                </span>
+              </span>
+            </label>
+
+            <div className="mt-2 rounded-2xl border border-slate-200 p-1">
+              <textarea
+                name="description"
+                value={form.description}
+                onChange={(e) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    description: e.target.value,
+                  }))
+                }
+                rows={10}
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-primary focus:ring-2 focus:ring-secondary"
+              />
+            </div>
+          </div>
              <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-6 mt-6">
                       {/* SEO SECTION */}
                       <div className="pt-6">

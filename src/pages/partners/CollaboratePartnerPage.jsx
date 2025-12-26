@@ -3,7 +3,7 @@ import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { FaRegEye } from "react-icons/fa6";
-import { AiTwotoneEdit } from "react-icons/ai";
+import { AiOutlineFundView, AiTwotoneEdit } from "react-icons/ai";
 import { RiDeleteBin5Line } from "react-icons/ri";
 import { toast } from "react-toastify";
 import PageHeader from "../../components/PageHeader";
@@ -79,7 +79,7 @@ export const CollaboratePartnerPage = () => {
       try {
         const { data } = await api.get("/partners/get-limit");
         if (data?.success) {
-          setPartnerLimit(data.data.limit); // set limit from backend
+          setPartnerLimit(data.data); // set limit from backend
         }
       } catch (error) {
         toast.error("Failed to load partner limit");
@@ -246,7 +246,7 @@ export const CollaboratePartnerPage = () => {
                   <th className="px-6 py-3">Name</th>
                   <th className="px-6 py-3">City</th>
                   <th className="px-6 py-3">Postal Codes</th>
-                  <th className="px-6 py-3">Total Leads</th>
+                 <th className="px-6 py-3">Monthly Lead Limit</th>
                   <th className="px-6 py-3">Premium</th>
                   <th className="px-6 py-3">Status</th>
                   <th className="px-6 py-3 text-center">Actions</th>
@@ -324,7 +324,23 @@ export const CollaboratePartnerPage = () => {
                               Logs
                             </span>
                           </div> */}
-
+                          <div className="relative group">
+                            <button
+                              className="rounded-full border border-slate-200 p-2 text-slate-500 hover:text-slate-900"
+                              onClick={() =>
+                                navigate(`/partners/view-logs/${p._id}`)
+                              }
+                            >
+                              <AiOutlineFundView size={16} />
+                            </button>
+                            <span
+                              className="absolute left-1/2 -translate-x-1/2 -top-8 
+                                          hidden group-hover:block bg-slate-800 text-white text-xs 
+                                            px-2 py-1 rounded shadow whitespace-no-wrap"
+                            >
+                              Leads Info
+                            </span>
+                          </div>
                           <div className="relative group">
                             <button
                               className="rounded-full border border-slate-200 p-2 text-slate-500 hover:text-slate-900"

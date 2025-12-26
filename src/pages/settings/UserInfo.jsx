@@ -135,7 +135,15 @@ const UserInfo = () => {
 
               {profile && (
                 <img
-                  src={`${import.meta.env.VITE_API_URL_IMAGE}/${profile}`}
+                  src={
+                    typeof profile === "string"
+                      ? profile.startsWith("http")
+                        ? profile
+                        : `${
+                            import.meta.env.VITE_API_URL_IMAGE
+                          }/${profile.replace(/^\//, "")}`
+                      : ""
+                  }
                   alt="User Profile"
                   width={400}
                   height={400}

@@ -4,7 +4,7 @@ import api from "../../api/axios";
 export const getAllLeads = createAsyncThunk(
   "lead/getAllLeads",
   async (
-    { page = 1, limit = 10, search = "", status = "" },
+    { page = 1, limit = 10, search = "", status = "", formType = "" },
     { rejectWithValue }
   ) => {
     try {
@@ -13,11 +13,35 @@ export const getAllLeads = createAsyncThunk(
       params.append("limit", limit);
       if (search) params.append("search", search);
       if (status) params.append("status", status);
-
+      if (formType) params.append("formType", formType);
       const res = await api.get(`lead-logs/all?${params.toString()}`);
       return res.data;
     } catch (err) {
       return rejectWithValue(err.response?.data || "Error fetching leads");
+    }
+  }
+);
+export const getPartnerLeads = createAsyncThunk(
+  "lead/getPartnerLeads",
+  async (
+    { page = 1, limit = 10, search = "" },
+    { rejectWithValue }
+  ) => {
+    try {
+      const params = new URLSearchParams();
+      params.append("page", page);
+      params.append("limit", limit);
+      if (search) params.append("search", search);
+
+      const res = await api.get(
+        `lead-logs/partner-leads?${params.toString()}`
+      );
+
+      return res.data;
+    } catch (err) {
+      return rejectWithValue(
+        err.response?.data || "Error fetching partner leads"
+      );
     }
   }
 );
@@ -91,6 +115,19 @@ const leadSlice = createSlice({
       .addCase(getAllLeads.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || "Failed to load leads";
+      })
+      .addCase(getPartnerLeads.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(getPartnerLeads.fulfilled, (state, action) => {
+        state.loading = false;
+        state.leads = action.payload.leads;
+        state.pagination = action.payload.pagination;
+      })
+      .addCase(getPartnerLeads.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || "Failed to load partner leads";
       })
 
       .addCase(updateLeadStatus.fulfilled, (state, action) => {

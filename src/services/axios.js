@@ -9,7 +9,7 @@ axiosInstance.interceptors.request.use(
   (config) => {
     let access_token = localStorage.getItem("token");
     if (access_token && !config.headers["Authorization"]) {
-      config.headers["Authorization"] = ` ${access_token}`;
+      config.headers["Authorization"] = `Bearer ${access_token}`;
     }
     config.headers["Accept"] = "application/json";
     return config;
@@ -36,9 +36,11 @@ axiosInstance.interceptors.response.use(
     const status = error.response?.status;
     const errorCode = error.response?.data?.code;
 
-    if (status === 401) {
-      if (errorCode === "SESSION_EXPIRED") {
-        toast.error("Session expired");
+    if (status === 401 || status === 700) {
+      if (status === 700 || errorCode === "SESSION_EXPIRED") {
+        toast.error(
+          status === 700 ? "Token verification failed" : "Session expired"
+        );
         localStorage.removeItem("token");
         localStorage.removeItem("auth_user");
         window.location = "/login";

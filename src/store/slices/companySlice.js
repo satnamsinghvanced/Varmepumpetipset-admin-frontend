@@ -3,7 +3,7 @@ import api from "../../api/axios";
 const IMAGE_URL = import.meta.env.VITE_API_URL_IMAGE;
 
 const fixImageUrl = (url) => {
-  if (!url) return null;
+  if (!url || typeof url !== "string") return url;
   return url.startsWith("http") ? url : `${IMAGE_URL}${url}`;
 };
 

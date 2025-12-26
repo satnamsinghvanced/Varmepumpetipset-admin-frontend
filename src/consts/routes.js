@@ -66,6 +66,7 @@ export const ROUTES = {
   PARTNER_CREATE: "/partners/create",
   PARTNERS_ID: "/partners/:id",
   PARTNERS_EDIT_ID: "/partners/:id/edit",
+  PARTNERS_VIEW_LOGS :"/partners/view-logs/:partnerId",
 
   LEAD_LOGS :"/lead-logs"
 };

@@ -30,7 +30,6 @@ const quillFormats = [
   "underline",
   "strike",
   "list",
-  "bullet",
   "blockquote",
   "link",
   "image",
@@ -182,7 +181,7 @@ const SEOSettings = () => {
             <div className="mt-2 rounded-2xl border border-slate-200 p-1">
               <ReactQuill
                 value={form.description}
-                onChange={(value) => setForm((prev) => ({ ...prev, description: value }))}
+                onChange={(value) => setForm((prev) => ({ ...prev, description: value.replace(/&nbsp;/g, " ") }))}
                 modules={quillModules}
                 formats={quillFormats}
               />

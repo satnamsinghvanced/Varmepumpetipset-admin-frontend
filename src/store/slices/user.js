@@ -4,7 +4,6 @@ import axios from "../../services/axios";
 import * as jwtDecodeModule from "jwt-decode";
 const jwt_decode = jwtDecodeModule.default;
 
-
 import { redirect } from "react-router";
 
 const userSlice = createSlice({
@@ -67,7 +66,7 @@ export const signIn = (body) => async (dispatch) => {
     dispatch(setAuthUser(data.admin));
     dispatch(setToken(data.token));
     toast.success(data.message);
-       navigate("/", { replace: true });
+    window.location.replace("/");
   } catch (error) {
     console.log("error", error);
   }
@@ -79,23 +78,16 @@ export const logOut = () => async (dispatch) => {
   dispatch(setToken(null));
   localStorage.removeItem("token");
   localStorage.removeItem("auth_user");
- navigate("/login", { replace: true });
+  window.location.replace("/login");
 };
 
 export const updateUserInfo = (id, body) => async (dispatch, getState) => {
   dispatch(setLoading(true));
 
   try {
-    const token = getState()?.auth?.token;
-
     const data = await axios.put(
       `${import.meta.env.VITE_API_URL}/admin/update-profile?id=${id}`,
-      body,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
+      body
     );
     dispatch(setAuthUser(data?.admin));
     toast.success(data?.message);
@@ -111,16 +103,9 @@ export const changePassword = (id, body) => async (dispatch, getState) => {
   dispatch(setLoading(true));
 
   try {
-    const token = getState()?.auth?.token;
-
     const data = await axios.post(
       `${import.meta.env.VITE_API_URL}/admin/change-password?id=${id}`,
-      body,
-      {
-        headers: {
-          Authorization: token,
-        },
-      }
+      body
     );
     // dispatch(setAuthUser(data?.admin));
     toast.success(data?.message);

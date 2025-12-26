@@ -13,6 +13,7 @@ import {
 } from "../../store/slices/realEstateAgents";
 import { toast } from "react-toastify";
 import ImageUploader from "../../UI/ImageUpload";
+import Input from "../../UI/Input";
 
 /* ------------------ QUILL CONFIG ------------------ */
 const quillModules = {
@@ -33,7 +34,6 @@ const quillFormats = [
   "underline",
   "strike",
   "list",
-  "bullet",
   "blockquote",
   "link",
   "image",
@@ -197,17 +197,12 @@ const RealEstateAgentsFormPage = () => {
         onSubmit={handleSubmit}
         className="grid gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]"
       >
-        {/* LEFT */}
         <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-            Title *
-          </label>
-          <input
+          <Input
+            label="Title *"
             value={form.title}
-            onChange={(e) =>
-              setForm({ ...form, title: e.target.value })
-            }
-            className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm"
+            onChange={(e) => setForm({ ...form, title: e.target.value })}
+            className="mb-4"
           />
 
           <div className="mt-4">
@@ -217,7 +212,7 @@ const RealEstateAgentsFormPage = () => {
             <ReactQuill
               value={form.description}
               onChange={(v) =>
-                setForm({ ...form, description: v })
+                setForm({ ...form, description: v.replace(/&nbsp;/g, " ") })
               }
               modules={quillModules}
               formats={quillFormats}
@@ -231,7 +226,7 @@ const RealEstateAgentsFormPage = () => {
             <ReactQuill
               value={form.descriptionBottom}
               onChange={(v) =>
-                setForm({ ...form, descriptionBottom: v })
+                setForm({ ...form, descriptionBottom: v.replace(/&nbsp;/g, " ") })
               }
               modules={quillModules}
               formats={quillFormats}
@@ -239,8 +234,111 @@ const RealEstateAgentsFormPage = () => {
           </div>
         </div>
 
-        {/* RIGHT */}
-        <div className="space-y-6">
+        {/* SEO SECTION (Full Width) */}
+        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm lg:col-span-2 space-y-6">
+          <h2 className="text-xl font-bold">SEO Settings</h2>
+          
+          <div className="grid gap-6 md:grid-cols-2">
+            <Input
+              label="Meta Title"
+              value={form.metaTitle}
+              onChange={(e) => setForm({ ...form, metaTitle: e.target.value })}
+            />
+            <Input
+              label="Meta Keywords (comma separated)"
+              value={form.metaKeywords}
+              onChange={(e) => setForm({ ...form, metaKeywords: e.target.value })}
+            />
+          </div>
+
+          <Input
+            label="Meta Description"
+            textarea
+            value={form.metaDescription}
+            onChange={(e) => setForm({ ...form, metaDescription: e.target.value })}
+          />
+
+          <div className="border-t pt-6">
+            <h2 className="text-lg font-semibold mb-4">Open Graph (Social Sharing)</h2>
+            <div className="grid gap-6 md:grid-cols-2">
+               <Input
+                label="OG Title"
+                value={form.ogTitle}
+                onChange={(e) => setForm({ ...form, ogTitle: e.target.value })}
+              />
+              <Input
+                label="OG Type"
+                value={form.ogType}
+                onChange={(e) => setForm({ ...form, ogType: e.target.value })}
+              />
+            </div>
+            <div className="mt-4">
+               <Input
+                label="OG Description"
+                textarea
+                value={form.ogDescription}
+                onChange={(e) => setForm({ ...form, ogDescription: e.target.value })}
+              />
+            </div>
+             <div className="mt-4 w-full md:w-1/2">
+              <ImageUploader
+                label="OG Image"
+                value={form.ogImage}
+                onChange={(img) => setForm({ ...form, ogImage: img })}
+              />
+            </div>
+          </div>
+
+          <div className="border-t pt-6">
+            <h2 className="text-lg font-semibold mb-4">Advanced SEO</h2>
+             <Input
+              label="Canonical URL"
+              value={form.canonicalUrl}
+              onChange={(e) => setForm({ ...form, canonicalUrl: e.target.value })}
+            />
+             <div className="mt-4">
+              <Input
+                label="JSON-LD Schema"
+                textarea
+                value={form.jsonLd}
+                onChange={(e) => setForm({ ...form, jsonLd: e.target.value })}
+              />
+             </div>
+             <div className="mt-4">
+               <Input
+                label="Custom Head Tags"
+                textarea
+                value={form.customHead}
+                onChange={(e) => setForm({ ...form, customHead: e.target.value })}
+              />
+             </div>
+          </div>
+
+           <div className="border-t pt-6">
+            <h2 className="text-lg font-semibold mb-4">Robots Settings</h2>
+            <div className="flex flex-wrap gap-4">
+              {Object.keys(form.robots).map((key) => (
+                <label key={key} className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary"
+                    type="checkbox"
+                    checked={form.robots[key]}
+                    onChange={(e) =>
+                      setForm({
+                        ...form,
+                        robots: { ...form.robots, [key]: e.target.checked },
+                      })
+                    }
+                  />
+                  <span className="capitalize text-sm text-slate-700">{key}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* RIGHT (Moved Meta Image here or keep it) */}
+        <div className="space-y-6 row-start-1 lg:col-start-2">
           <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             <ImageUploader
               label="Meta Image"
@@ -255,7 +353,7 @@ const RealEstateAgentsFormPage = () => {
             <button
               type="submit"
               disabled={isDisabled}
-              className="w-full rounded-full bg-primary px-6 py-3 text-sm font-semibold text-white"
+              className="w-full rounded-full bg-primary px-6 py-3 text-sm font-semibold text-white transition hover:bg-secondary disabled:opacity-70 disabled:cursor-not-allowed"
             >
               {submitting ? "Saving..." : "Save"}
             </button>

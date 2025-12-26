@@ -3,12 +3,17 @@ import { useDispatch, useSelector } from "react-redux";
 import { useParams, useNavigate } from "react-router-dom";
 import PageHeader from "../../components/PageHeader";
 import { FaRegCopy } from "react-icons/fa6";
+import { toast } from "react-toastify";
 import {
   getLeadById,
   updateLeadStatus,
-  updateLeadProfit,
 } from "../../store/slices/leadLogsSlice";
-import { toast } from "react-toastify";
+import api from "../../api/axios";
+const escapeCSV = (value) => {
+  if (value === null || value === undefined) return "";
+  const str = String(value).replace(/"/g, '""');
+  return `"${str}"`;
+};
 
 const LeadDetails = () => {
   const { id } = useParams();
@@ -16,29 +21,181 @@ const LeadDetails = () => {
   const navigate = useNavigate();
 
   const { selectedLead, loading } = useSelector((s) => s.lead);
+  const [partnerPrices, setPartnerPrices] = useState([]);
+  const [status, setStatus] = useState("");
+  const [profit, setProfit] = useState(0);
 
   useEffect(() => {
     if (id) dispatch(getLeadById(id));
   }, [id, dispatch]);
-  const [status, setStatus] = useState("");
-  const [profit, setProfit] = useState(0);
+
   useEffect(() => {
     if (selectedLead) {
       setStatus(selectedLead.status);
       setProfit(selectedLead.profit);
+      if (selectedLead.partnerIds) {
+        setPartnerPrices(
+          selectedLead.partnerIds.map((p) => ({
+            partnerId: p.partnerId?._id,
+            name: p.partnerId?.name,
+            email: p.partnerId?.email,
+            leadPrice: p.leadPrice || 0,
+          }))
+        );
+      }
     }
   }, [selectedLead]);
+
   const handleStatusChange = (e) => {
     const newStatus = e.target.value;
-    setStatus(newStatus); // update UI immediately
+    setStatus(newStatus);
     dispatch(updateLeadStatus({ leadId: id, status: newStatus }));
+  };
+
+  // ✅ Handle per-partner lead price update
+  const handlePartnerPriceChange = async (partnerId, value) => {
+    const updated = partnerPrices.map((p) =>
+      p.partnerId === partnerId ? { ...p, leadPrice: Number(value) } : p
+    );
+    setPartnerPrices(updated);
+
+    try {
+      const res = await api.patch("/lead-logs/update-partner-profit", {
+        leadId: id,
+        partnerId,
+        leadPrice: Number(value),
+      });
+
+      if (res.data.success) {
+        toast.success("Partner lead price updated!");
+        setProfit(res.data.data.profit); // update total profit from backend
+      } else {
+        toast.error(res.data.message || "Failed to update price");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Something went wrong!");
+    }
   };
 
   const handleProfitChange = (e) => {
     const newProfit = Number(e.target.value);
-    setProfit(newProfit); // update UI immediately
-    dispatch(updateLeadProfit({ leadId: id, profit: newProfit }));
+    setProfit(newProfit);
+    // Optional: If you still want to update total profit manually
+    // axios.put("/update-lead-profit", { leadId: id, profit: newProfit })
   };
+  const exportToCSV = () => {
+    if (!selectedLead) return;
+
+    const rows = [];
+    const values = selectedLead.dynamicFields?.[0]?.values || {};
+    const log = selectedLead.log ? JSON.parse(selectedLead.log) : {};
+    const stats = log.statistics || {};
+
+    const add = (...cols) => rows.push(cols);
+
+    // ================= LEAD SUMMARY =================
+    add("Section", "Field", "Value");
+    add("Lead Summary", "Lead ID", selectedLead.uniqueId);
+    add("Lead Summary", "Status", selectedLead.status);
+    add("Lead Summary", "Lead Type", values.selectedFormTitle);
+    add("Lead Summary", "Form Number", selectedLead.formNumber);
+    add(
+      "Lead Summary",
+      "Created At",
+      new Date(selectedLead.createdAt).toLocaleString()
+    );
+    add("Lead Summary", "Total Profit", selectedLead.profit);
+    add("Lead Summary", "IP Address", selectedLead.ip);
+    add("");
+
+    // ================= USER DETAILS =================
+    add("User Details", "Field", "Value");
+    const fieldMap = {
+      name: "Full Name",
+      email: "Email",
+      phone: "Phone",
+      streetName: "Street Name",
+      postalCode: "Postal Code",
+      accommodationType: "Accommodation Type",
+      homeSize: "Home Size",
+      roomCount: "Room Count",
+      roomCondition: "Condition",
+      sellingDate: "Selling Timeline",
+      details: "Details",
+    };
+
+    Object.entries(fieldMap).forEach(([key, label]) => {
+      if (values[key]) add("User Details", label, values[key]);
+    });
+    add("");
+
+    // ================= PARTNERS =================
+    add("Partners", "Partner Name", "Email", "Lead Price");
+    selectedLead.partnerIds.forEach((p) => {
+      add("Partners", p.partnerId?.name, p.partnerId?.email, p.leadPrice);
+    });
+    add("");
+
+    // ================= EMAIL RESULTS =================
+    add("Email Results", "Email", "Status", "Sent At", "Error");
+    selectedLead.emailResults.forEach((er) => {
+      add(
+        "Email Results",
+        er.email,
+        er.status,
+        er.sentAt ? new Date(er.sentAt).toLocaleString() : "",
+        er.error || ""
+      );
+    });
+    add("");
+
+    // ================= PROCESSING STATS =================
+    add("Processing Stats", "Metric", "Value");
+    add("Processing Stats", "Initial Partners", stats.initialPartners);
+    add("Processing Stats", "Postal Matched", stats.postalMatched);
+    add("Processing Stats", "Wishes Matched", stats.wishesMatched);
+    add("Processing Stats", "Limit Available", stats.limitAvailable);
+    add("Processing Stats", "Final Selected", stats.finalSelected);
+    add("Processing Stats", "Max Allowed", stats.maxPartnersAllowed);
+    add("");
+
+    // ================= PROCESSING LOGS =================
+    add("Processing Logs", "Step", "Partner", "Result", "Details");
+
+    Object.values(log.steps || {}).forEach((step) => {
+      step.log?.forEach((entry) => {
+        add(
+          "Processing Logs",
+          step.name,
+          entry.partnerName || "",
+          entry.match === true
+            ? "Matched"
+            : entry.match === false
+            ? "Not Matched"
+            : entry.limitReached === false
+            ? "Passed"
+            : entry.isPremium
+            ? "Ranked"
+            : "Checked",
+          JSON.stringify(entry)
+        );
+      });
+    });
+
+    // ================= CSV DOWNLOAD =================
+    const escape = (v) =>
+      v === undefined || v === null ? "" : `"${String(v).replace(/"/g, '""')}"`;
+
+    const csv = rows.map((r) => r.map(escape).join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `lead_${selectedLead.uniqueId}_detailed.csv`;
+    link.click();
+  };
+
   const headerButtons = [
     {
       value: "Back to leads",
@@ -46,6 +203,11 @@ const LeadDetails = () => {
       className:
         "border border-slate-300 text-slate-700 hover:border-slate-400 hover:bg-white",
       onClick: () => navigate(-1),
+    },
+    {
+      value: "Export CSV",
+      variant: "primary",
+      onClick: exportToCSV,
     },
   ];
 
@@ -63,7 +225,8 @@ const LeadDetails = () => {
   }
 
   const values = selectedLead.dynamicFields?.[0]?.values || {};
-const leadLog = selectedLead.log ? JSON.parse(selectedLead.log) : null;
+  const leadLog = selectedLead.log ? JSON.parse(selectedLead.log) : null;
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -84,7 +247,7 @@ const leadLog = selectedLead.log ? JSON.parse(selectedLead.log) : null;
               value: new Date(selectedLead.createdAt).toLocaleString(),
             },
             { label: "Status", value: selectedLead.status },
-            { label: "Profit", value: selectedLead.profit },
+            { label: "Profit", value: profit },
           ].map((item, i) => (
             <div
               key={i}
@@ -103,36 +266,125 @@ const leadLog = selectedLead.log ? JSON.parse(selectedLead.log) : null;
         {/* Partners */}
         <div className="rounded-xl border border-slate-100 bg-slate-50/60 p-4">
           <p className="text-xs font-semibold uppercase text-slate-500 mb-2">
-            Partners
+            Partners & Lead Price
           </p>
-          {selectedLead.partnerIds?.length ? (
-            <div className="space-y-1 text-sm">
-              {selectedLead.partnerIds.map((p) => (
-                <p key={p._id}>
-                  {p.name} {p.email ? `(${p.email})` : ""}
-                </p>
+          {partnerPrices.length ? (
+            <div className="space-y-3">
+              {partnerPrices.map((p) => (
+                <div
+                  key={p.partnerId}
+                  className="flex items-center justify-between gap-2 bg-white border border-slate-200 rounded-lg p-3"
+                >
+                  <div>
+                    <p className="text-sm font-medium text-slate-900">
+                      {p.name}
+                    </p>
+                    <p className="text-xs text-slate-500">{p.email}</p>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      value={p.leadPrice}
+                      onChange={(e) => {
+                        const updated = partnerPrices.map((partner) =>
+                          partner.partnerId === p.partnerId
+                            ? { ...partner, leadPrice: Number(e.target.value) }
+                            : partner
+                        );
+                        setPartnerPrices(updated);
+                      }}
+                      className="w-28 border border-slate-300 rounded-md px-2 py-1 text-sm"
+                    />
+
+                    {/* Tick Button */}
+                    <button
+                      onClick={async () => {
+                        try {
+                          const res = await api.patch(
+                            "/lead-logs/update-partner-profit",
+                            {
+                              leadId: id,
+                              partnerId: p.partnerId,
+                              leadPrice: p.leadPrice,
+                            }
+                          );
+
+                          if (res.data.success) {
+                            toast.success("Partner lead price updated!");
+                            setProfit(res.data.data.profit); // update total profit
+                          } else {
+                            toast.error(
+                              res.data.message || "Failed to update price"
+                            );
+                          }
+                        } catch (err) {
+                          console.error(err);
+                          toast.error("Something went wrong!");
+                        }
+                      }}
+                      className="px-2 py-1 bg-primary text-white rounded hover:bg-primary/80"
+                      title="Update partner price"
+                    >
+                      ✔
+                    </button>
+                  </div>
+                </div>
               ))}
             </div>
           ) : (
             <p className="text-sm">-</p>
           )}
         </div>
+        {/* Email Results */}
+        <div className="rounded-xl border border-slate-100 bg-slate-50/60 p-4">
+          <p className="text-xs font-semibold uppercase text-slate-500 mb-2">
+            Email Results
+          </p>
 
-        {/* Lead Types */}
-        {/* <div className="rounded-xl border border-slate-100 bg-slate-50/60 p-4">
-          <p className="text-xs font-semibold uppercase text-slate-500 mb-2">Lead Types</p>
-          {selectedLead.leadTypes?.length ? (
-            selectedLead.leadTypes.map((t) => (
-              <p key={t._id} className="text-sm">
-                {t.title || "Unknown Type"} {t.description ? `- ${t.description}` : ""}
-              </p>
-            ))
+          {selectedLead.emailResults && selectedLead.emailResults.length > 0 ? (
+            <div className="space-y-3">
+              {selectedLead.emailResults.map((er) => (
+                <div
+                  key={er._id}
+                  className="flex items-center justify-between bg-white border border-slate-200 rounded-lg p-3"
+                >
+                  <div>
+                    <p className="text-sm font-medium text-slate-900">
+                      {er.email}
+                    </p>
+                    <p className="text-xs text-slate-500">
+                      Sent at:{" "}
+                      {er.sentAt ? new Date(er.sentAt).toLocaleString() : "—"}
+                    </p>
+                  </div>
+
+                  <div className="text-right">
+                    <span
+                      className={`px-2 py-1 rounded text-xs font-semibold ${
+                        er.status === "sent"
+                          ? "bg-green-100 text-green-700"
+                          : er.status === "failed"
+                          ? "bg-red-100 text-red-700"
+                          : "bg-yellow-100 text-yellow-700"
+                      }`}
+                    >
+                      {er.status.toUpperCase()}
+                    </span>
+
+                    {er.error && (
+                      <p className="text-xs text-red-600 mt-1">{er.error}</p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
           ) : (
-            <p className="text-sm">-</p>
+            <p className="text-sm text-slate-500">No email activity found.</p>
           )}
-        </div> */}
+        </div>
 
-        {/* Status & Profit Updates */}
+        {/* Status & Total Profit */}
         <div className="grid gap-4 md:grid-cols-2">
           <div className="rounded-xl border border-slate-100 bg-slate-50/60 p-4">
             <p className="text-xs font-semibold uppercase text-slate-500 mb-2">
@@ -151,7 +403,7 @@ const leadLog = selectedLead.log ? JSON.parse(selectedLead.log) : null;
 
           <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-4">
             <p className="text-xs font-semibold uppercase text-slate-500 mb-2">
-              Update Profit
+              Total Profit
             </p>
             <input
               type="number"
@@ -161,8 +413,6 @@ const leadLog = selectedLead.log ? JSON.parse(selectedLead.log) : null;
             />
           </div>
         </div>
-        <p></p>
-
         <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-4">
           <p className="text-xs font-semibold uppercase text-slate-500 mb-2">
             Form Filled Details ({values.selectedFormTitle || "N/A"})
@@ -227,46 +477,43 @@ const leadLog = selectedLead.log ? JSON.parse(selectedLead.log) : null;
             })}
           </div>
         </div>
-{leadLog && (
-  <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-4 mt-6">
-    <p className="text-xs font-semibold uppercase text-slate-500 mb-2">
-      Lead Processing Log
-    </p>
-
-    {Object.entries(leadLog.steps || {}).map(([stepKey, step], idx) => (
-      <div key={idx} className="mb-4">
-        <p className="text-sm font-medium text-slate-700 mb-1">
-          {step.name} ({step.description})
-        </p>
-        <div className="ml-4 space-y-2 text-sm text-slate-600">
-          {step.log?.map((entry, i) => (
-            <div key={i} className="p-2 border border-slate-200 rounded bg-white">
-              {Object.entries(entry).map(([k, v]) => (
-                <p key={k}>
-                  <strong>{k}:</strong>{" "}
-                  {typeof v === "object" ? JSON.stringify(v) : String(v)}
-                </p>
-              ))}
-            </div>
-          ))}
-          {step.summary && (
-            <p className="mt-1 text-xs text-slate-500">
-              <strong>Summary:</strong> {JSON.stringify(step.summary)}
+        {leadLog && (
+          <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-4 mt-6">
+            <p className="text-xs font-semibold uppercase text-slate-500 mb-2">
+              Lead Processing Log
             </p>
-          )}
-        </div>
-      </div>
-    ))}
-  </div>
-)}
 
-        {/* Raw JSON */}
-        {/* <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-inner">
-          <p className="text-xs font-semibold uppercase text-slate-500 mb-2">Raw Data</p>
-          <pre className="text-xs overflow-auto bg-slate-100 p-3 rounded-md">
-            {JSON.stringify(selectedLead, null, 2)}
-          </pre>
-        </div> */}
+            {Object.entries(leadLog.steps || {}).map(([stepKey, step], idx) => (
+              <div key={idx} className="mb-4">
+                <p className="text-sm font-medium text-slate-700 mb-1">
+                  {step.name} ({step.description})
+                </p>
+                <div className="ml-4 space-y-2 text-sm text-slate-600">
+                  {step.log?.map((entry, i) => (
+                    <div
+                      key={i}
+                      className="p-2 border border-slate-200 rounded bg-white"
+                    >
+                      {Object.entries(entry).map(([k, v]) => (
+                        <p key={k}>
+                          <strong>{k}:</strong>{" "}
+                          {typeof v === "object"
+                            ? JSON.stringify(v)
+                            : String(v)}
+                        </p>
+                      ))}
+                    </div>
+                  ))}
+                  {step.summary && (
+                    <p className="mt-1 text-xs text-slate-500">
+                      <strong>Summary:</strong> {JSON.stringify(step.summary)}
+                    </p>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

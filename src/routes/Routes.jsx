@@ -66,6 +66,7 @@ import FormManagePage from "../pages/forms/FormTypeSelectionPage";
 import StepsBuilderForm from "../pages/forms/StepsBuilderForm";
 import LeadDetails from "../pages/leadLogs/LeadDetails";
 import CountiesDetailPage from "../pages/counties/CountiesDetailPage";
+import LeadInfo from "../pages/partners/LeadInfoPage";
 
 const Routes = () => {
   const navigate = useNavigate();
@@ -92,7 +93,7 @@ const Routes = () => {
 
       
         <Route path={ROUTES.HOMEPAGE} element={<HomePage />} />
-        <Route path={ROUTES.ABOUT} element={<AboutPage />} />
+        <Route path="/about" element={<AboutPage />} />
 
         <Route path={ROUTES.FAQ} element={<Faq />} />
 
@@ -191,6 +192,7 @@ const Routes = () => {
         <Route path={ROUTES.PARTNERS_ID} element={<PartnerDetailPage />} />
         <Route path={ROUTES.PARTNERS_EDIT_ID} element={<PartnerEditPage />} />
         <Route path={ROUTES.PARTNERS_EDIT_ID} element={<PartnerEditPage />} />
+        <Route path={ROUTES.PARTNERS_VIEW_LOGS} element={<LeadInfo />} />
 
         <Route path={ROUTES.SITEMAP} element={<SitemapPage />} />
         <Route path="/sitemap/create" element={<SitemapFormPage />} />

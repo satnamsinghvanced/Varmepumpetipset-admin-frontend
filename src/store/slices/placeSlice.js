@@ -3,15 +3,17 @@ import api from "../../api/axios";
 const IMAGE_URL = import.meta.env.VITE_API_URL_IMAGE;
 
 const fixImageUrl = (url) => {
-  if (!url) return null;
+  if (!url || typeof url !== "string") return url;
   return url.startsWith("http") ? url : `${IMAGE_URL}${url}`;
 };
 
 export const getPlaces = createAsyncThunk(
   "places/getPlaces",
-  async ({ page = 1, limit = 10, search = ""} = {}, { rejectWithValue }) => {
+  async ({ page = 1, limit = 10, search = "" } = {}, { rejectWithValue }) => {
     try {
-      const { data } = await api.get(`/places?page=${page}&limit=${limit}&search=${search}`);
+      const { data } = await api.get(
+        `/places?page=${page}&limit=${limit}&search=${search}`
+      );
       return data;
     } catch (err) {
       return rejectWithValue(err.response?.data || err.message);
@@ -25,7 +27,7 @@ export const getPlaceById = createAsyncThunk(
     try {
       const { data } = await api.get(`/places/detail/${id}`);
 
-       if (data?.data?.icon) {
+      if (data?.data?.icon) {
         data.data.icon = fixImageUrl(data.data.icon);
       }
       return data;

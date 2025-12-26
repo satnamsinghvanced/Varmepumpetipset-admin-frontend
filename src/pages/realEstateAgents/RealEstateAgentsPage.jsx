@@ -1,225 +1,262 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import Section from "../../UI/Section";
+import Input from "../../UI/Input";
+import ImageUploader from "../../UI/ImageUpload";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate, useParams } from "react-router-dom";
-import PageHeader from "../../components/PageHeader";
+import { getAgents, updateAgent } from "../../store/slices/realEstateAgents";
+import { toast } from "react-toastify";
+import ReactQuill from "react-quill-new";
 
-import { getAgents } from "../../store/slices/realEstateAgents";
+const quillModules = {
+  toolbar: [
+    [{ header: [1, 2, 3, false] }],
+    ["bold", "italic", "underline", "strike"],
+    [{ list: "ordered" }, { list: "bullet" }],
+    ["blockquote", "code-block"],
+    [{ align: [] }],
+    ["link", "image"],
+    ["clean"],
+  ],
+};
+
+const quillFormats = [
+  "header",
+  "bold",
+  "italic",
+  "underline",
+  "strike",
+  "list",
+  "blockquote",
+  "code-block",
+  "align",
+  "link",
+  "image",
+];
 
 const RealEstateAgentsPage = () => {
   const dispatch = useDispatch();
-  const navigate = useNavigate();
+  const { agents, loading } = useSelector((state) => state.agents || {});
+  
+  // We assume we are editing the first agent in the list, similar to a singleton page
+  const agent = agents?.[0];
 
-  const { agents, loading } = useSelector((state) => state.agents);
-  // console.log(agents);
+  const [form, setForm] = useState({
+    title: "",
+    description: "",
+    descriptionBottom: "",
+
+    metaTitle: "",
+    metaDescription: "",
+    metaKeywords: "",
+    metaImage: "",
+
+    canonicalUrl: "",
+    jsonLd: "",
+
+    ogTitle: "",
+    ogDescription: "",
+    ogImage: "",
+    ogType: "website",
+
+    customHead: "",
+    
+    robots: {
+      noindex: false,
+      nofollow: false,
+      noarchive: false,
+      nosnippet: false,
+      noimageindex: false,
+      notranslate: false,
+    },
+  });
+
   useEffect(() => {
     dispatch(getAgents());
   }, [dispatch]);
-  const id = agents?.[0]?._id;
 
-  const headerButtons = [
-    {
-      value: "Edit Real Estate Agents Page",
-      variant: "primary",
-      className:
-        "!bg-primary !text-white !border-primary hover:!bg-secondary hover:!border-secondary",
-      onClick: () => navigate(`/real-estate-agent/${id}/edit`),
-    },
-  ];
+  useEffect(() => {
+    if (agent) {
+      setForm({
+        ...form,
+        ...agent,
+        metaKeywords: agent.metaKeywords || "",
+        robots: agent.robots || form.robots,
+      });
+    }
+  }, [agent]);
 
-  if (loading) {
-    return (
-      <div className="space-y-6">
-        <PageHeader title="Real Estate Agents Page" />
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <div className="h-6 w-48 animate-pulse rounded bg-slate-100" />
-          <div className="mt-4 h-4 w-32 animate-pulse rounded bg-slate-100" />
-          <div className="mt-6 h-48 animate-pulse rounded-xl bg-slate-100" />
-        </div>
-      </div>
-    );
-  }
+  const handleSave = async () => {
+    if (!agent?._id) {
+        toast.error("No agent found to update");
+        return;
+    }
+    const res = await dispatch(updateAgent({ id: agent._id, agentData: form }));
 
-  if (!agents?.length) {
-    return (
-      <div className="space-y-6">
-        <PageHeader
-          title="Real Estate Agents Page"
-          buttonsList={headerButtons}
-        />
-        <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-6 text-center text-sm text-slate-500">
-          No Real Estate Agents Page Found.
-        </div>
-      </div>
-    );
-  }
-
-  const agent = agents[0];
+    if (res.error) {
+         toast.error("Failed to update Real Estate Agents Page");
+    } else {
+        //  toast.success("Real Estate Agents Page Updated Successfully!");
+    }
+  };
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title={agent?.title}
-        description="Preview the full details of this real estate agent."
-        buttonsList={headerButtons}
-      />
+    <Section title="Real Estate Agents Page" onSave={handleSave} loading={loading}>
+      {loading ? (
+        <div className="animate-pulse space-y-4">
+          <div className="h-6 bg-gray-300 rounded w-1/3"></div>
+          <div className="h-10 bg-gray-200 rounded"></div>
+        </div>
+      ) : (
+        <div className="space-y-8">
+          <Input
+            label="Title"
+            value={form.title}
+            onChange={(e) => setForm({ ...form, title: e.target.value })}
+          />
 
-      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-        <div className="space-y-8 p-6">
-          <div className="grid gap-6 md:grid-cols-3">
-            {[
-              { label: "Title", value: agent?.title },
-              // {
-              //   label: "Created At",
-              //   value: new Date(agent?.createdAt).toLocaleString(),
-              // },
-              {
-                label: "Updated At",
-                value: new Date(agent?.updatedAt).toLocaleString(),
-              },
-            ].map((item, idx) => (
-              <div
-                key={idx}
-                className="rounded-xl bg-slate-50 p-4 border border-slate-100"
-              >
-                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
-                  {item.label}
-                </p>
-                <p className="mt-1 text-sm text-slate-900 font-medium">
-                  {item.value || "N/A"}
-                </p>
-              </div>
-            ))}
-          </div>
+          <label
+            className="block text-sm font-medium text-gray-600 mb-1"
+          >
+            Description
+          </label>
+          <ReactQuill
+            value={form.description}
+            onChange={(value) => setForm({ ...form, description: value.replace(/&nbsp;/g, " ") })}
+            modules={quillModules}
+            formats={quillFormats}
+            className="rounded-2xl [&_.ql-container]:rounded-b-2xl [&_.ql-toolbar]:rounded-t-2xl"
+          />
 
-          <div className="rounded-xl p-5 border border-slate-100 bg-white shadow-inner">
-            <p className="text-xs font-semibold uppercase text-slate-500 tracking-wide">
-              Description
-            </p>
+          <label
+            className="block text-sm font-medium text-gray-600 mb-1"
+          >
+            Description Bottom
+          </label>
+           <ReactQuill
+            value={form.descriptionBottom}
+            onChange={(value) => setForm({ ...form, descriptionBottom: value.replace(/&nbsp;/g, " ") })}
+            modules={quillModules}
+            formats={quillFormats}
+            className="rounded-2xl [&_.ql-container]:rounded-b-2xl [&_.ql-toolbar]:rounded-t-2xl"
+          />
 
-            <div
-              className="prose mt-3 max-w-none text-slate-700 leading-relaxed"
-              dangerouslySetInnerHTML={{
-                __html: agent?.description || "<p>No description provided.</p>",
-              }}
+          {/* SEO SECTION */}
+          <div className="border-t pt-6">
+            <h2 className="text-xl font-bold mb-4">SEO Settings</h2>
+
+            <Input
+              label="Meta Title"
+              value={form.metaTitle}
+              onChange={(e) => setForm({ ...form, metaTitle: e.target.value })}
             />
-          </div>
-          <div className="rounded-xl p-5 border border-slate-100 bg-white shadow-inner">
-            <p className="text-xs font-semibold uppercase text-slate-500 tracking-wide">
-              Description Bottom
-            </p>
 
-            <div
-              className="prose mt-3 max-w-none text-slate-700 leading-relaxed"
-              dangerouslySetInnerHTML={{
-                __html:
-                  agent?.descriptionBottom || "<p>No description provided.</p>",
-              }}
+            <Input
+              label="Meta Description"
+              textarea
+              value={form.metaDescription}
+              onChange={(e) =>
+                setForm({ ...form, metaDescription: e.target.value })
+              }
             />
-          </div>
-          {/* META SEO */}
-          <div className="rounded-xl p-5 border border-slate-100 bg-white shadow-inner space-y-3">
-            <h2 className="font-semibold text-lg">SEO Settings</h2>
 
-            <p>
-              <strong>Meta Title:</strong> {agent?.metaTitle || "N/A"}
-            </p>
-            <p>
-              <strong>Meta Description:</strong>{" "}
-              {agent?.metaDescription || "N/A"}
-            </p>
-            <p>
-              <strong>Meta Keywords:</strong> {agent?.metaKeywords || "N/A"}
-            </p>
+            <Input
+              label="Meta Keywords (comma separated)"
+              value={form.metaKeywords}
+              onChange={(e) =>
+                setForm({ ...form, metaKeywords: e.target.value })
+              }
+            />
 
-            {agent?.metaImage && (
-              <img
-                src={agent.metaImage}
-                alt="Meta"
-                className="h-32 w-auto rounded-md border"
-              />
-            )}
+            <ImageUploader
+              label="Meta Image"
+              value={form.metaImage}
+              onChange={(img) => setForm({ ...form, metaImage: img })}
+            />
           </div>
 
           {/* OG TAGS */}
-          <div className="rounded-xl p-5 border border-slate-100 bg-white shadow-inner space-y-3">
-            <h2 className="font-semibold text-lg">Open Graph (OG) Tags</h2>
+          <div className="border-t pt-6">
+            <h2 className="text-xl font-bold mb-4">Open Graph (OG) Tags</h2>
 
-            <p>
-              <strong>OG Title:</strong> {agent?.ogTitle || "N/A"}
-            </p>
-            <p>
-              <strong>OG Description:</strong> {agent?.ogDescription || "N/A"}
-            </p>
-            <p>
-              <strong>OG Type:</strong> {agent?.ogType || "N/A"}
-            </p>
+            <Input
+              label="OG Title"
+              value={form.ogTitle}
+              onChange={(e) => setForm({ ...form, ogTitle: e.target.value })}
+            />
+            <Input
+              label="OG Description"
+              textarea
+              value={form.ogDescription}
+              onChange={(e) =>
+                setForm({ ...form, ogDescription: e.target.value })
+              }
+            />
 
-            {agent?.ogImage && (
-              <img
-                src={agent.ogImage}
-                alt="OG"
-                className="h-32 w-auto rounded-md border"
-              />
-            )}
+            <ImageUploader
+              label="OG Image"
+              value={form.ogImage}
+              onChange={(img) => setForm({ ...form, ogImage: img })}
+            />
+
+            <Input
+              label="OG Type"
+              value={form.ogType}
+              onChange={(e) => setForm({ ...form, ogType: e.target.value })}
+            />
           </div>
 
           {/* ADVANCED SEO */}
-          <div className="rounded-xl p-5 border border-slate-100 bg-white shadow-inner space-y-3">
-            <h2 className="font-semibold text-lg">Advanced SEO</h2>
+          <div className="border-t pt-6">
+            <h2 className="text-xl font-bold mb-4">Advanced SEO</h2>
 
-            <p>
-              <strong>Canonical URL:</strong> {agent?.canonicalUrl || "N/A"}
-            </p>
+            <Input
+              label="Canonical URL"
+              value={form.canonicalUrl}
+              onChange={(e) =>
+                setForm({ ...form, canonicalUrl: e.target.value })
+              }
+            />
 
-            <p>
-              <strong>JSON-LD:</strong>
-            </p>
-            <pre className="bg-slate-100 p-3 rounded text-xs overflow-auto">
-              {agent?.jsonLd || "N/A"}
-            </pre>
+            <Input
+              label="JSON-LD Schema"
+              textarea
+              value={form.jsonLd}
+              onChange={(e) => setForm({ ...form, jsonLd: e.target.value })}
+            />
 
-            <p>
-              <strong>Custom Head Code:</strong>
-            </p>
-            <pre className="bg-slate-100 p-3 rounded text-xs overflow-auto">
-              {agent?.customHead || "N/A"}
-            </pre>
+            <Input
+              label="Custom Head Tags"
+              textarea
+              value={form.customHead}
+              onChange={(e) => setForm({ ...form, customHead: e.target.value })}
+            />
           </div>
 
           {/* ROBOTS */}
-          <div className="rounded-xl p-5 border border-slate-100 bg-white shadow-inner space-y-3">
-            <h2 className="font-semibold text-lg">Robots Settings</h2>
+          <div className="border-t pt-6">
+            <h2 className="text-xl font-bold mb-4">Robots Settings</h2>
 
-            {Object.entries(agent?.robots || {}).map(([key, val]) => (
-              <p key={key}>
-                <strong>{key}:</strong> {val ? "Enabled" : "Disabled"}
-              </p>
+            {Object.keys(form.robots).map((key) => (
+              <label key={key} className="flex items-center gap-2">
+                <input
+                  className="!relative"
+                  type="checkbox"
+                  checked={form.robots[key]}
+                  onChange={(e) =>
+                    setForm({
+                      ...form,
+                      robots: { ...form.robots, [key]: e.target.checked },
+                    })
+                  }
+                />
+                {key}
+              </label>
             ))}
           </div>
 
-          {/* REDIRECT */}
-          {/* <div className="rounded-xl p-5 border border-slate-100 bg-white shadow-inner space-y-3">
-            <h2 className="font-semibold text-lg">Redirect</h2>
-
-            <p>
-              <strong>Enabled:</strong>{" "}
-              {agent?.redirect?.enabled ? "Yes" : "No"}
-            </p>
-            <p>
-              <strong>From:</strong> {agent?.redirect?.from || "N/A"}
-            </p>
-            <p>
-              <strong>To:</strong> {agent?.redirect?.to || "N/A"}
-            </p>
-            <p>
-              <strong>Type:</strong> {agent?.redirect?.type || "301"}
-            </p>
-          </div> */}
-
-    
         </div>
-      </div>
-    </div>
+      )}
+    </Section>
   );
 };
 

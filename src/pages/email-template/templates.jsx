@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback, useRef } from "react";
-import axios from "axios";
+import api from "../../api/axios";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import PageHeader from "../../components/PageHeader";
@@ -17,37 +17,32 @@ const EmailTemplateList = () => {
     selectedIdRef.current = selectedId;
   }, [selectedId]);
 
-  const fetchTemplates = useCallback(
-    async (preferredId = null) => {
-      try {
-        const res = await axios.get(
-          `${import.meta.env.VITE_API_URL}/email-templates`
-        );
+  const fetchTemplates = useCallback(async (preferredId = null) => {
+    try {
+      const res = await api.get(`/email-templates`);
 
-        const payload = res.data;
-        const list = Array.isArray(payload?.data) ? payload.data : [];
-        setTemplates(list);
+      const payload = res.data;
+      const list = Array.isArray(payload?.data) ? payload.data : [];
+      setTemplates(list);
 
-        if (list.length === 0) {
-          setSelectedId(null);
-          return;
-        }
-
-        const targetId = preferredId || selectedIdRef.current;
-        const hasPreferred = targetId && list.some((t) => t._id === targetId);
-
-        if (hasPreferred) {
-          setSelectedId(targetId);
-        } else {
-          setSelectedId(list[0]._id);
-        }
-      } catch (error) {
-        console.error(error);
-        toast.error("Failed to load templates.");
+      if (list.length === 0) {
+        setSelectedId(null);
+        return;
       }
-    },
-    []
-  );
+
+      const targetId = preferredId || selectedIdRef.current;
+      const hasPreferred = targetId && list.some((t) => t._id === targetId);
+
+      if (hasPreferred) {
+        setSelectedId(targetId);
+      } else {
+        setSelectedId(list[0]._id);
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to load templates.");
+    }
+  }, []);
 
   useEffect(() => {
     fetchTemplates();
@@ -74,8 +69,8 @@ const EmailTemplateList = () => {
     try {
       setSettingDefault(true);
 
-      await axios.patch(
-        `${import.meta.env.VITE_API_URL}/email-templates/default-email-template?id=${selectedTemplate._id}`
+      await api.patch(
+        `/email-templates/default-email-template?id=${selectedTemplate._id}`
       );
       toast.success("Default template set successfully.");
       await fetchTemplates(selectedTemplate._id);
@@ -214,7 +209,9 @@ const EmailTemplateList = () => {
               {selectedTemplate && (
                 <button
                   type="button"
-                  onClick={() => navigate(`/email/edit/${selectedTemplate._id}`)}
+                  onClick={() =>
+                    navigate(`/email/edit/${selectedTemplate._id}`)
+                  }
                   className="inline-flex items-center justify-center rounded-full border border-slate-200 px-4 py-2 text-xs font-medium text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                 >
                   Edit Template

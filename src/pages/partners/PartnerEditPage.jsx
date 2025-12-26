@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import axios from "axios";
+import api from "../../api/axios";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
@@ -35,14 +35,14 @@ export const PartnerEditPage = () => {
   const [errors, setErrors] = useState({});
 
   useEffect(() => {
-    axios
+    api
       .get(`${import.meta.env.VITE_API_URL}/partners/questions`)
       .then((res) => setAllQuestions(res.data?.questions || []))
       .catch((err) => console.error("Error fetching questions:", err));
   }, []);
 
   useEffect(() => {
-    axios
+    api
       .get(`${import.meta.env.VITE_API_URL}/form-select`)
       .then((res) => setLeadTypesList(res.data?.data || []))
       .catch((err) => console.error("Error fetching lead types:", err));
@@ -68,7 +68,10 @@ export const PartnerEditPage = () => {
         (c) => c.code
       ) || [""],
       postalCodesRanges: partnerDetail.postalCodes?.ranges?.length
-        ? partnerDetail.postalCodes.ranges
+        ? partnerDetail.postalCodes.ranges.map((r) => ({
+            from: r.from || "",
+            to: r.to || "",
+          }))
         : [{ from: "", to: "" }],
     });
 
@@ -131,29 +134,28 @@ export const PartnerEditPage = () => {
     const { name, value, checked, type } = e.target;
     setForm({ ...form, [name]: type === "checkbox" ? checked : value });
   };
- const fetchOptionsForQuestion = async (question, index) => {
-  if (!question) return;
+  const fetchOptionsForQuestion = async (question, index) => {
+    if (!question) return;
 
-  try {
-    const res = await axios.get(
-      `${import.meta.env.VITE_API_URL}/partners/answer?question=${question}`
-    );
+    try {
+      const res = await api.get(
+        `${import.meta.env.VITE_API_URL}/partners/answer?question=${question}`
+      );
 
-    const options = res.data?.options || [];
+      const options = res.data?.options || [];
 
-    setWishes((prev) => {
-      const updated = [...prev];
-      updated[index] = {
-        ...updated[index],
-        options, // ✅ keep expectedAnswer intact
-      };
-      return updated;
-    });
-  } catch (err) {
-    console.error("Failed to load options:", err);
-  }
-};
-
+      setWishes((prev) => {
+        const updated = [...prev];
+        updated[index] = {
+          ...updated[index],
+          options, // ✅ keep expectedAnswer intact
+        };
+        return updated;
+      });
+    } catch (err) {
+      console.error("Failed to load options:", err);
+    }
+  };
 
   const handleLeadTypeChange = (index, field, value) => {
     const updated = [...leadTypes];
@@ -310,7 +312,7 @@ export const PartnerEditPage = () => {
             </div>
             <div>
               <label className="text-sm font-semibold text-slate-700">
-                Total Leads
+                Monthly Lead Limit
               </label>
               <input
                 type="number"
@@ -408,9 +410,12 @@ export const PartnerEditPage = () => {
                         const val = e.target.value;
                         if (!/^[0-9]*$/.test(val)) return;
 
-                        const updated = [...form.postalCodesRanges];
-                        updated[idx].from = val;
-                        setForm({ ...form, postalCodesRanges: updated });
+                        setForm((prev) => ({
+                          ...prev,
+                          postalCodesRanges: prev.postalCodesRanges.map(
+                            (r, i) => (i === idx ? { ...r, from: val } : r)
+                          ),
+                        }));
                       }}
                       placeholder="1000"
                       className="w-full rounded-xl border border-slate-300 px-3 py-2 mt-1 text-sm"
@@ -427,9 +432,12 @@ export const PartnerEditPage = () => {
                         const val = e.target.value;
                         if (!/^[0-9]*$/.test(val)) return;
 
-                        const updated = [...form.postalCodesRanges];
-                        updated[idx].to = val;
-                        setForm({ ...form, postalCodesRanges: updated });
+                        setForm((prev) => ({
+                          ...prev,
+                          postalCodesRanges: prev.postalCodesRanges.map(
+                            (r, i) => (i === idx ? { ...r, to: val } : r)
+                          ),
+                        }));
                       }}
                       placeholder="2000"
                       className="w-full rounded-xl border border-slate-300 px-3 py-2 mt-1 text-sm"

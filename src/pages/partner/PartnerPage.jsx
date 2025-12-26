@@ -27,7 +27,17 @@ const modules = {
 };
 
 const formats = [
-  "header", "bold", "italic", "underline", "strike", "list", "bullet", "blockquote", "code-block", "align", "link", "image",
+  "header",
+  "bold",
+  "italic",
+  "underline",
+  "strike",
+  "list",
+  "blockquote",
+  "code-block",
+  "align",
+  "link",
+  "image",
 ];
 
 // --- Helper Components ---
@@ -86,7 +96,9 @@ const DynamicField = ({
           onChange={(e) => onChange(e, name)}
           disabled={disabled}
           className={`w-full border border-gray-300 rounded-lg px-3 py-2 outline-none bg-white ${
-            disabled ? "bg-gray-100 cursor-not-allowed" : "focus:ring-2 focus:ring-blue-400"
+            disabled
+              ? "bg-gray-100 cursor-not-allowed"
+              : "focus:ring-2 focus:ring-blue-400"
           }`}
           rows={4}
         />
@@ -99,7 +111,9 @@ const DynamicField = ({
           onChange={(e) => onChange(e, name)}
           disabled={disabled}
           className={`w-full border border-gray-300 rounded-lg px-3 py-2 outline-none bg-white ${
-            disabled ? "bg-gray-100 cursor-not-allowed" : "focus:ring-2 focus:ring-blue-400 pointer-events-none"
+            disabled
+              ? "bg-gray-100 cursor-not-allowed"
+              : "focus:ring-2 focus:ring-blue-400 pointer-events-none"
           }`}
         />
       )}
@@ -128,7 +142,9 @@ const Section = ({ title, children }) => (
 
 const Input = ({ label, value, onChange, name, disabled, type = "text" }) => (
   <div>
-    <label className="block text-sm font-medium text-gray-600 mb-1">{label}</label>
+    <label className="block text-sm font-medium text-gray-600 mb-1">
+      {label}
+    </label>
     <input
       type={type}
       name={name}
@@ -136,7 +152,9 @@ const Input = ({ label, value, onChange, name, disabled, type = "text" }) => (
       onChange={onChange}
       disabled={disabled}
       className={`w-full border border-gray-300 rounded-lg px-3 py-2 outline-none bg-white ${
-        disabled ? "bg-gray-100 cursor-not-allowed" : "focus:ring-2 focus:ring-blue-400"
+        disabled
+          ? "bg-gray-100 cursor-not-allowed"
+          : "focus:ring-2 focus:ring-blue-400"
       }`}
     />
   </div>
@@ -144,7 +162,9 @@ const Input = ({ label, value, onChange, name, disabled, type = "text" }) => (
 
 const Textarea = ({ label, value, onChange, name, disabled }) => (
   <div>
-    <label className="block text-sm font-medium text-gray-600 mb-1">{label}</label>
+    <label className="block text-sm font-medium text-gray-600 mb-1">
+      {label}
+    </label>
     <textarea
       name={name}
       value={value || ""}
@@ -152,7 +172,9 @@ const Textarea = ({ label, value, onChange, name, disabled }) => (
       disabled={disabled}
       rows={4}
       className={`w-full border border-gray-300 rounded-lg px-3 py-2 outline-none bg-white ${
-        disabled ? "bg-gray-100 cursor-not-allowed" : "focus:ring-2 focus:ring-blue-400"
+        disabled
+          ? "bg-gray-100 cursor-not-allowed"
+          : "focus:ring-2 focus:ring-blue-400"
       }`}
     />
   </div>
@@ -174,26 +196,66 @@ const Checkbox = ({ label, checked, onChange, name, disabled }) => (
 
 // --- Component Logic ---
 
-const IMAGE_URL = import.meta.env.VITE_API_URL_IMAGE ?? import.meta.env.VITE_LOCAL_URL_IMAGE;
+const IMAGE_URL =
+  import.meta.env.VITE_API_URL_IMAGE ?? import.meta.env.VITE_LOCAL_URL_IMAGE;
 
 const PartnerPage = () => {
   const dispatch = useDispatch();
   const { partners, loading } = useSelector((state) => state.partner);
-  
+
   // Initialize state with an empty template so it shows blank inputs if no data is found
   const [formData, setFormData] = useState({
-    heading: "", subHeading: "", contactFormTitle: "", formText: "", buttonText: "",
-    title: "", description: "", metaTitle: "", metaKeywords: "", metaDescription: "",
-    metaImage: "", canonicalUrl: "", jsonLd: "", ogTitle: "", ogDescription: "",
-    ogImage: "", ogType: "website",
+    heading: "",
+    subHeading: "",
+    contactFormTitle: "",
+    formText: "",
+    buttonText: "",
+    title: "",
+    description: "",
+    metaTitle: "",
+    metaKeywords: "",
+    metaDescription: "",
+    metaImage: "",
+    canonicalUrl: "",
+    jsonLd: "",
+    customHead: "",
+    ogTitle: "",
+    ogDescription: "",
+    ogImage: "",
+    ogType: "website",
     contactFields: [
-        { name: "name", label: "Name", placeholder: "Enter name", type: "text", required: true },
-        { name: "email", label: "Email", placeholder: "Enter email", type: "email", required: true },
-        { name: "message", label: "Message", placeholder: "Enter message", type: "textarea", required: false }
+      {
+        name: "name",
+        label: "Name",
+        placeholder: "Enter name",
+        type: "text",
+        required: true,
+      },
+      {
+        name: "email",
+        label: "Email",
+        placeholder: "Enter email",
+        type: "email",
+        required: true,
+      },
+      {
+        name: "message",
+        label: "Message",
+        placeholder: "Enter message",
+        type: "textarea",
+        required: false,
+      },
     ],
-    robots: { noindex: false, nofollow: false, noarchive: false, nosnippet: false, noimageindex: false, notranslate: false }
+    robots: {
+      noindex: false,
+      nofollow: false,
+      noarchive: false,
+      nosnippet: false,
+      noimageindex: false,
+      notranslate: false,
+    },
   });
-  
+
   const [isEditing, setIsEditing] = useState(false);
   const [preview, setPreview] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -209,7 +271,7 @@ const PartnerPage = () => {
         robots: partners[0].robots || {},
         contactFields: partners[0].contactFields || [],
       });
-      if (partners[0].image && typeof partners[0].image === 'string') {
+      if (partners[0].image && typeof partners[0].image === "string") {
         setPreview(`${IMAGE_URL}${partners[0].image}`);
       }
     }
@@ -217,7 +279,7 @@ const PartnerPage = () => {
 
   const handleChange = (e, fieldName) => {
     const { value, type, checked } = e.target;
-    let newValue = type === 'checkbox' ? checked : value;
+    let newValue = type === "checkbox" ? checked : value;
 
     const nameParts = fieldName.split(".");
     if (nameParts.length === 2) {
@@ -244,7 +306,9 @@ const PartnerPage = () => {
     setFormData((prev) => ({
       ...prev,
       contactFields: prev.contactFields.map((field) =>
-        field.name === fieldName ? { ...field, required: !field.required } : field
+        field.name === fieldName
+          ? { ...field, required: !field.required }
+          : field
       ),
     }));
   };
@@ -262,7 +326,9 @@ const PartnerPage = () => {
     setFormData((prev) => ({
       ...prev,
       contactFields: prev.contactFields.map((field) =>
-        field.name === fieldName ? { ...field, placeholder: e.target.value } : field
+        field.name === fieldName
+          ? { ...field, placeholder: e.target.value }
+          : field
       ),
     }));
   };
@@ -273,7 +339,9 @@ const PartnerPage = () => {
       return;
     }
     try {
-      const response = await dispatch(updatePartner({ id: formData._id, formData })).unwrap();
+      const response = await dispatch(
+        updatePartner({ id: formData._id, formData })
+      ).unwrap();
       toast.success(response?.message || "Partner updated successfully!");
       setIsEditing(false);
       dispatch(fetchPartners());
@@ -294,9 +362,11 @@ const PartnerPage = () => {
     }
   };
 
-  const getNestedValue = (obj, path) => path.split('.').reduce((acc, part) => acc && acc[part], obj);
+  const getNestedValue = (obj, path) =>
+    path.split(".").reduce((acc, part) => acc && acc[part], obj);
 
-  if (loading) return <p className="p-6 text-gray-600">Loading partner data...</p>;
+  if (loading)
+    return <p className="p-6 text-gray-600">Loading partner data...</p>;
 
   return (
     <div className="space-y-10 pb-10">
@@ -305,75 +375,226 @@ const PartnerPage = () => {
         <div className="flex gap-3">
           {!isEditing ? (
             <>
-              <button onClick={() => setIsEditing(true)}><AiTwotoneEdit size={22} /></button>
-              <button onClick={() => setShowDeleteModal(true)} className="text-red-600"><RiDeleteBin5Line size={22} /></button>
+              <button onClick={() => setIsEditing(true)}>
+                <AiTwotoneEdit size={22} />
+              </button>
+              <button
+                onClick={() => setShowDeleteModal(true)}
+                className="text-red-600"
+              >
+                <RiDeleteBin5Line size={22} />
+              </button>
             </>
           ) : (
             <>
-              <button onClick={() => setIsEditing(false)} className="px-4 py-2 border rounded-md">Cancel</button>
-              <button onClick={handleSave} className="px-4 py-2 bg-[#161925] text-white rounded-md">Save</button>
+              <button
+                onClick={() => setIsEditing(false)}
+                className="px-4 py-2 border rounded-md"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSave}
+                className="px-4 py-2 bg-[#161925] text-white rounded-md"
+              >
+                Save
+              </button>
             </>
           )}
         </div>
       </div>
 
       <Section title="Partner Information (Header)">
-        <Input label="Heading" value={formData.heading} onChange={(e) => handleChange(e, "heading")} disabled={!isEditing} />
-        <Input label="Sub Heading" value={formData.subHeading} onChange={(e) => handleChange(e, "subHeading")} disabled={!isEditing} />
+        <Input
+          label="Heading"
+          value={formData.heading}
+          onChange={(e) => handleChange(e, "heading")}
+          disabled={!isEditing}
+        />
+        <Input
+          label="Sub Heading"
+          value={formData.subHeading}
+          onChange={(e) => handleChange(e, "subHeading")}
+          disabled={!isEditing}
+        />
       </Section>
 
       <Section title="Contact Form Fields">
-        <Input label="Contact Form Title" value={formData.contactFormTitle} onChange={(e) => handleChange(e, "contactFormTitle")} disabled={!isEditing} />
-        <Input label="Form Text" value={formData.formText} onChange={(e) => handleChange(e, "formText")} disabled={!isEditing} />
-        <Input label="Button Text" value={formData.buttonText} onChange={(e) => handleChange(e, "buttonText")} disabled={!isEditing} />
+        <Input
+          label="Contact Form Title"
+          value={formData.contactFormTitle}
+          onChange={(e) => handleChange(e, "contactFormTitle")}
+          disabled={!isEditing}
+        />
+        <Input
+          label="Form Text"
+          value={formData.formText}
+          onChange={(e) => handleChange(e, "formText")}
+          disabled={!isEditing}
+        />
+        <Input
+          label="Button Text"
+          value={formData.buttonText}
+          onChange={(e) => handleChange(e, "buttonText")}
+          disabled={!isEditing}
+        />
         {formData.contactFields?.map((field, index) => (
-          <DynamicField key={index} field={field} disabled={!isEditing} isEditing={isEditing} 
-            onChange={handleChange} onRequiredToggle={handleRequiredToggle} 
-            onLabelChange={handleLabelChange} onPlaceholderChange={handlePlaceholderChange} 
+          <DynamicField
+            key={index}
+            field={field}
+            disabled={!isEditing}
+            isEditing={isEditing}
+            onChange={handleChange}
+            onRequiredToggle={handleRequiredToggle}
+            onLabelChange={handleLabelChange}
+            onPlaceholderChange={handlePlaceholderChange}
           />
         ))}
       </Section>
 
       <Section title="Details Section">
-        <Input label="Title" value={formData.title} onChange={(e) => handleChange(e, "title")} disabled={!isEditing} />
+        <Input
+          label="Title"
+          value={formData.title}
+          onChange={(e) => handleChange(e, "title")}
+          disabled={!isEditing}
+        />
         {isEditing && (
           <div className="mt-2">
-            <label className="block text-sm font-medium text-gray-600 mb-1">Upload Image</label>
-            <input type="file" accept="image/*" onChange={handleImageUpload} className="text-sm" />
+            <label className="block text-sm font-medium text-gray-600 mb-1">
+              Upload Image
+            </label>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleImageUpload}
+              className="text-sm"
+            />
           </div>
         )}
         {(preview || formData.image) && (
-          <img src={typeof formData.image === 'string' && !preview ? `${IMAGE_URL}${formData.image}` : preview} alt="Preview" className="mt-3 rounded-lg border h-40 object-cover" />
+          <img
+            src={
+              preview ||
+              (typeof formData.image === "string"
+                ? formData.image.startsWith("http")
+                  ? formData.image
+                  : `${IMAGE_URL}/${formData.image.replace(/^\//, "")}`
+                : "")
+            }
+            alt="Preview"
+            className="mt-3 rounded-lg border h-40 object-cover"
+          />
         )}
         <div className="mt-4">
-          <label className="block text-sm font-medium text-gray-600 mb-1">Description</label>
+          <label className="block text-sm font-medium text-gray-600 mb-1">
+            Description
+          </label>
           {isEditing ? (
-            <ReactQuill theme="snow" value={formData.description || ""} onChange={(val) => setFormData(p => ({...p, description: val}))} modules={modules} formats={formats} />
+            <ReactQuill
+              theme="snow"
+              value={formData.description || ""}
+              onChange={(val) =>
+                setFormData((p) => ({
+                  ...p,
+                  description: val.replace(/&nbsp;/g, " "),
+                }))
+              }
+              modules={modules}
+              formats={formats}
+            />
           ) : (
-            <div className="border border-gray-300 rounded-lg px-3 py-2 bg-white min-h-[100px]" dangerouslySetInnerHTML={{ __html: formData.description || "" }} />
+            <div
+              className="border border-gray-300 rounded-lg px-3 py-2 bg-white min-h-[100px]"
+              dangerouslySetInnerHTML={{ __html: formData.description || "" }}
+            />
           )}
         </div>
       </Section>
 
       <Section title="SEO and Metadata">
-        <Input label="Meta Title" value={formData.metaTitle} onChange={(e) => handleChange(e, "metaTitle")} disabled={!isEditing} />
-        <Input label="Meta Keywords" value={formData.metaKeywords} onChange={(e) => handleChange(e, "metaKeywords")} disabled={!isEditing} />
-        <Textarea label="Meta Description" value={formData.metaDescription} onChange={(e) => handleChange(e, "metaDescription")} disabled={!isEditing} />
-        <Input label="Canonical URL" value={formData.canonicalUrl} onChange={(e) => handleChange(e, "canonicalUrl")} disabled={!isEditing} />
-        <Textarea label="JSON-LD" value={formData.jsonLd} onChange={(e) => handleChange(e, "jsonLd")} disabled={!isEditing} />
+        <Input
+          label="Meta Title"
+          value={formData.metaTitle}
+          onChange={(e) => handleChange(e, "metaTitle")}
+          disabled={!isEditing}
+        />
+        <Input
+          label="Meta Keywords"
+          value={formData.metaKeywords}
+          onChange={(e) => handleChange(e, "metaKeywords")}
+          disabled={!isEditing}
+        />
+        <Textarea
+          label="Meta Description"
+          value={formData.metaDescription}
+          onChange={(e) => handleChange(e, "metaDescription")}
+          disabled={!isEditing}
+        />
+        <Input
+          label="Canonical URL"
+          value={formData.canonicalUrl}
+          onChange={(e) => handleChange(e, "canonicalUrl")}
+          disabled={!isEditing}
+        />
+        <Textarea
+          label="JSON-LD"
+          value={formData.jsonLd}
+          onChange={(e) => handleChange(e, "jsonLd")}
+          disabled={!isEditing}
+        />
+        <Textarea
+          label="Custom Head Tags"
+          value={formData.customHead}
+          onChange={(e) => handleChange(e, "customHead")}
+          disabled={!isEditing}
+        />
       </Section>
 
       <Section title="Open Graph (Social Sharing)">
-        <Input label="OG Title" value={formData.ogTitle} onChange={(e) => handleChange(e, "ogTitle")} disabled={!isEditing} />
-        <Textarea label="OG Description" value={formData.ogDescription} onChange={(e) => handleChange(e, "ogDescription")} disabled={!isEditing} />
-        <Input label="OG Image URL" value={formData.ogImage} onChange={(e) => handleChange(e, "ogImage")} disabled={!isEditing} />
-        <Input label="OG Type" value={formData.ogType} onChange={(e) => handleChange(e, "ogType")} disabled={!isEditing} />
+        <Input
+          label="OG Title"
+          value={formData.ogTitle}
+          onChange={(e) => handleChange(e, "ogTitle")}
+          disabled={!isEditing}
+        />
+        <Textarea
+          label="OG Description"
+          value={formData.ogDescription}
+          onChange={(e) => handleChange(e, "ogDescription")}
+          disabled={!isEditing}
+        />
+        <Input
+          label="OG Image URL"
+          value={formData.ogImage}
+          onChange={(e) => handleChange(e, "ogImage")}
+          disabled={!isEditing}
+        />
+        <Input
+          label="OG Type"
+          value={formData.ogType}
+          onChange={(e) => handleChange(e, "ogType")}
+          disabled={!isEditing}
+        />
       </Section>
 
       <Section title="Robots Tags">
         <div className="grid grid-cols-3 gap-3">
-          {["noindex", "nofollow", "noarchive", "nosnippet", "noimageindex", "notranslate"].map(tag => (
-            <Checkbox key={tag} label={tag} checked={getNestedValue(formData, `robots.${tag}`)} onChange={(e) => handleChange(e, `robots.${tag}`)} disabled={!isEditing} />
+          {[
+            "noindex",
+            "nofollow",
+            "noarchive",
+            "nosnippet",
+            "noimageindex",
+            "notranslate",
+          ].map((tag) => (
+            <Checkbox
+              key={tag}
+              label={tag}
+              checked={getNestedValue(formData, `robots.${tag}`)}
+              onChange={(e) => handleChange(e, `robots.${tag}`)}
+              disabled={!isEditing}
+            />
           ))}
         </div>
       </Section>
@@ -383,8 +604,18 @@ const PartnerPage = () => {
           <div className="bg-white p-6 rounded-lg w-80 shadow-lg text-center">
             <p className="mb-6 font-bold">Delete this page?</p>
             <div className="flex justify-center gap-3">
-              <button className="border px-4 py-2 rounded" onClick={() => setShowDeleteModal(false)}>Cancel</button>
-              <button className="bg-red-600 text-white px-4 py-2 rounded" onClick={handleDelete}>Delete</button>
+              <button
+                className="border px-4 py-2 rounded"
+                onClick={() => setShowDeleteModal(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="bg-red-600 text-white px-4 py-2 rounded"
+                onClick={handleDelete}
+              >
+                Delete
+              </button>
             </div>
           </div>
         </div>

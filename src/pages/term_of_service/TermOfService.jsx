@@ -27,22 +27,16 @@ const modules = {
 
 const formats = [
   "header", "bold", "italic", "underline", "strike",
-  "list", "bullet", "blockquote", "code-block",
+  "list", "blockquote", "code-block",
   "align", "link", "image",
 ];
 
-export const TermOfServicePage = () => {
-  const dispatch = useDispatch();
-  const { items, loading } = useSelector((state) => state.termOfService);
-
-  const [isEditing, setIsEditing] = useState(false);
-
-  // CONTENT STATE
-  const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
-
-  // SEO FIELDS
-  const [seo, setSeo] = useState({
+const termOfServiceDefaultState = {
+  tosId: null,
+  title: "",
+  content: "",
+  lastUpdated: null,
+  seo: {
     metaTitle: "",
     metaDescription: "",
     metaKeywords: "",
@@ -62,10 +56,63 @@ export const TermOfServicePage = () => {
     includeInSitemap: true,
     priority: 0.7,
     changefreq: "monthly",
-  });
+  },
+};
 
-  const [tosId, setTosId] = useState(null);
-  const [lastUpdated, setLastUpdated] = useState(null);
+export const TermOfServicePage = () => {
+  const dispatch = useDispatch();
+  const { items, loading } = useSelector((state) => state.termOfService);
+
+  const [isEditing, setIsEditing] = useState(false);
+
+  // Initialize all state in one go or separately using lazy init
+  // To keep it clean and match existing structure, I'll keep separate states but init them lazily.
+
+  const getInitialData = () => {
+    if (items && items.length > 0) {
+      const data = items[0];
+      return {
+        tosId: data._id,
+        title: data.title || "Terms of Service",
+        content: data.description || "",
+        lastUpdated: data.updatedAt || "",
+        seo: {
+          metaTitle: data.metaTitle || "",
+          metaDescription: data.metaDescription || "",
+          metaKeywords: data.metaKeywords || "",
+          canonicalUrl: data.canonicalUrl || "",
+          ogTitle: data.ogTitle || "",
+          ogDescription: data.ogDescription || "",
+          ogImage: data.ogImage || "",
+          robots: data.robots || termOfServiceDefaultState.seo.robots,
+          jsonLd: data.jsonLd || "",
+          customHead: data.customHead || "",
+          includeInSitemap: data.includeInSitemap ?? true,
+          priority: data.priority ?? 0.7,
+          changefreq: data.changefreq || "monthly",
+        },
+      };
+    }
+    return termOfServiceDefaultState;
+  };
+
+  const [formState, setFormState] = useState(getInitialData);
+
+  // Destructure for usage in render/handlers
+  const { tosId, title, content, seo, lastUpdated } = formState;
+
+  // Setters to maintain compatibility with existing handlers 
+  // (or we can refactor handlers, but wrappers are easier for now if we want to keep code structure)
+  // Actually, keeping separate states is messy with lazy init if they depend on the same source.
+  // It's cleaner to merge them into one object like AboutPage, or keep them separate but lazy init each.
+  // Let's go with merging into one state object `formState` to ensure consistency.
+  
+  // Helpers to update specific parts
+  const setTitle = (val) => setFormState(prev => ({ ...prev, title: val }));
+  const setContent = (val) => setFormState(prev => ({ ...prev, content: val }));
+  const setSeo = (val) => setFormState(prev => ({ ...prev, seo: val }));
+  const setTosId = (val) => setFormState(prev => ({ ...prev, tosId: val }));
+  const setLastUpdated = (val) => setFormState(prev => ({ ...prev, lastUpdated: val }));
 
   // FETCH DATA
   useEffect(() => {
@@ -76,31 +123,26 @@ export const TermOfServicePage = () => {
   useEffect(() => {
     if (items && items.length > 0) {
       const data = items[0];
-      setTosId(data._id);
-      setTitle(data.title || "Terms of Service");
-      setContent(data.description || "");
-      setLastUpdated(data.updatedAt || "");
-
-      setSeo({
-        metaTitle: data.metaTitle || "",
-        metaDescription: data.metaDescription || "",
-        metaKeywords: data.metaKeywords || "",
-        canonicalUrl: data.canonicalUrl || "",
-        ogTitle: data.ogTitle || "",
-        ogDescription: data.ogDescription || "",
-        ogImage: data.ogImage || "",
-        robots: data.robots || {
-          noindex: false,
-          nofollow: false,
-          noarchive: false,
-          nosnippet: false,
-          notranslate: false,
+      setFormState({
+        tosId: data._id,
+        title: data.title || "Terms of Service",
+        content: data.description || "",
+        lastUpdated: data.updatedAt || "",
+        seo: {
+          metaTitle: data.metaTitle || "",
+          metaDescription: data.metaDescription || "",
+          metaKeywords: data.metaKeywords || "",
+          canonicalUrl: data.canonicalUrl || "",
+          ogTitle: data.ogTitle || "",
+          ogDescription: data.ogDescription || "",
+          ogImage: data.ogImage || "",
+          robots: data.robots || termOfServiceDefaultState.seo.robots,
+          jsonLd: data.jsonLd || "",
+          customHead: data.customHead || "",
+          includeInSitemap: data.includeInSitemap ?? true,
+          priority: data.priority ?? 0.7,
+          changefreq: data.changefreq || "monthly",
         },
-        jsonLd: data.jsonLd || "",
-        customHead: data.customHead || "",
-        includeInSitemap: data.includeInSitemap ?? true,
-        priority: data.priority ?? 0.7,
-        changefreq: data.changefreq || "monthly",
       });
     }
   }, [items]);
@@ -260,7 +302,7 @@ export const TermOfServicePage = () => {
               <ReactQuill
                 theme="snow"
                 value={content}
-                onChange={setContent}
+                onChange={(val) => setContent(val.replace(/&nbsp;/g, " "))}
                 modules={modules}
                 formats={formats}
                 className="bg-white"

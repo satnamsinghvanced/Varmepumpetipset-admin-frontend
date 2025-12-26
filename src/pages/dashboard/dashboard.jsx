@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import axios from "../../api/axios";
 import PageHeader from "../../components/PageHeader";
 import Skeleton from "react-loading-skeleton";
 import dayjs from "dayjs";
@@ -111,7 +111,9 @@ const DashboardSkeleton = () => {
 const Dashboard = () => {
   const [stats, setStats] = useState(null);
   const [statsType, setStatsType] = useState(null);
-
+  const [partnerName, setPartnerName] = useState("");
+  const [partners, setPartners] = useState([]);
+  const [partnerSearch, setPartnerSearch] = useState("");
   const [startDate, setStartDate] = useState(
     dayjs().startOf("month").format("YYYY-MM-DD")
   );
@@ -122,20 +124,35 @@ const Dashboard = () => {
   const fetchStats = () => {
     axios
       .get(
-        `${
-          import.meta.env.VITE_API_URL
-        }/dashboard/stats?start=${startDate}&end=${endDate}`
+        `/dashboard/stats?start=${startDate}&end=${endDate}&partnerName=${partnerName}`
       )
       .then((res) => setStats(res.data))
       .catch(() => {});
   };
-
   useEffect(() => {
     fetchStats();
-  }, [startDate, endDate]);
+  }, [startDate, endDate, partnerName]);
+
+  const fetchPartners = (search = "") => {
+    axios
+      .get(`/partners/all?search=${search}`)
+      .then((res) => setPartners(res.data?.data || []))
+      .catch(() => {});
+  };
+
+  useEffect(() => {
+    fetchPartners();
+  }, []);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchPartners(partnerSearch);
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, [partnerSearch]);
   const fetchStatsOfType = () => {
     axios
-      .get(`${import.meta.env.VITE_API_URL}/dashboard/total-leads`)
+      .get(`/dashboard/total-leads`)
       .then((res) => setStatsType(res.data))
       .catch(() => {});
   };
@@ -147,7 +164,7 @@ const Dashboard = () => {
   if (!stats || !statsType) return <DashboardSkeleton />;
 
   const { topPartners, growthData, totals, trendlineData } = stats;
-  console.log(statsType);
+  // console.log(statsType);
 
   return (
     <div className="space-y-6">
@@ -162,6 +179,20 @@ const Dashboard = () => {
           <p className="mt-4"> </p>
           <p className="text-3xl font-bold text-slate-900">
             {statsType?.totalLeads || 0}
+          </p>
+        </div>
+        <div className="rounded-xl border border-slate-200 bg-white p-6">
+          <p className="text-sm text-slate-500">Total Reject Leads</p>
+          <p className="mt-5"> </p>
+          <p className="text-3xl font-bold text-slate-900">
+            {totals?.totalRejects || 0}
+          </p>
+        </div>
+        <div className="rounded-xl border border-slate-200 bg-white p-6">
+          <p className="text-sm text-slate-500">Total Pending Leads</p>
+          <p className="mt-5"> </p>
+          <p className="text-3xl font-bold text-slate-900">
+            {totals?.totalPending || 0}
           </p>
         </div>
 
@@ -254,6 +285,32 @@ const Dashboard = () => {
               <option value="15days">Last 15 Days</option>
               <option value="30days">Last 30 Days</option>
               <option value="month">This Month</option>
+            </select>
+          </div>
+          <div>
+            <label className="text-sm text-slate-600 block mb-1">
+              Filter by Partner
+            </label>
+
+            {/* <input
+            type="text"
+            placeholder="Search partner..."
+            className="border border-slate-200 p-2 rounded w-56 mb-2"
+            value={partnerSearch}
+            onChange={(e) => setPartnerSearch(e.target.value)}
+          /> */}
+
+            <select
+              className="border border-slate-200 p-2 rounded w-56"
+              value={partnerName}
+              onChange={(e) => setPartnerName(e.target.value)}
+            >
+              <option value="">All Partners</option>
+              {partners.map((p) => (
+                <option key={p._id} value={p.name}>
+                  {p.name}
+                </option>
+              ))}
             </select>
           </div>
         </div>

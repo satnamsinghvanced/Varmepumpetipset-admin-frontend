@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../../api/axios";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import PageHeader from "../../components/PageHeader";
@@ -30,9 +30,7 @@ const CreateEmailTemplate = () => {
     const fetchTemplate = async () => {
       try {
         setInitializing(true);
-        const res = await axios.get(
-          `${import.meta.env.VITE_API_URL}/email-templates/detail?id=${templateId}`
-        );
+        const res = await api.get(`/email-templates/detail?id=${templateId}`);
         const data = res.data?.data ?? res.data;
         setName(data?.name || "");
         setSubject(data?.subject || "");
@@ -52,13 +50,14 @@ const CreateEmailTemplate = () => {
     try {
       setLoading(true);
       if (isEditMode) {
-        await axios.put(
-          `${import.meta.env.VITE_API_URL}/email-templates/update?id=${templateId}`,
-          { name, subject, body }
-        );
+        await api.put(`/email-templates/update?id=${templateId}`, {
+          name,
+          subject,
+          body,
+        });
         toast.success("Template updated!");
       } else {
-        await axios.post(`${import.meta.env.VITE_API_URL}/email-templates`, {
+        await api.post(`/email-templates`, {
           name,
           subject,
           body,

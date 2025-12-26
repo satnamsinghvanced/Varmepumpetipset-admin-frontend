@@ -1,7 +1,10 @@
-import React, { useEffect, useState } from "react";
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable react/no-unescaped-entities */
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   getAllLeads,
+  getPartnerLeads,
   updateLeadProfit,
   updateLeadStatus,
 } from "../../store/slices/leadLogsSlice";
@@ -9,6 +12,7 @@ import { useNavigate } from "react-router-dom";
 import PageHeader from "../../components/PageHeader";
 import Pagination from "../../UI/pagination";
 import { FaRegEye } from "react-icons/fa6";
+import { getForms } from "../../store/slices/formSelectSlice";
 
 const LeadLogs = () => {
   const dispatch = useDispatch();
@@ -18,23 +22,44 @@ const LeadLogs = () => {
 
   const [page, setPage] = useState(1);
   const limit = 10;
-  const [search, setSearch] = useState("");
+  const [leadSearch, setLeadSearch] = useState("");
+  const [partnerSearch, setPartnerSearch] = useState("");
   const [status, setStatus] = useState("");
+  const [formType, setFormType] = useState("");
+  const { forms = [], loading: formsLoading } = useSelector(
+    (s) => s.formSelect
+  );
+  useEffect(() => {
+    dispatch(getForms());
+  }, []);
 
   useEffect(() => {
     const delay = setTimeout(() => {
-      dispatch(
-        getAllLeads({
-          page,
-          limit,
-          search,
-          status,
-        })
-      );
+      if (partnerSearch) {
+        dispatch(
+          getPartnerLeads({
+            page,
+            limit,
+            search: partnerSearch,
+            status,
+            formType,
+          })
+        );
+      } else {
+        dispatch(
+          getAllLeads({
+            page,
+            limit,
+            search: leadSearch,
+            status,
+            formType, // ✅ ADD THIS
+          })
+        );
+      }
     }, 400);
 
     return () => clearTimeout(delay);
-  }, [page, search, status]);
+  }, [page, leadSearch, partnerSearch, status, formType]);
 
   const badgeColor = (status) => {
     switch (status) {
@@ -49,6 +74,17 @@ const LeadLogs = () => {
     }
   };
 
+  const leadTypeBadge = (type) => {
+    switch (type) {
+      case "selge_bolig":
+        return "bg-blue-100 text-blue-700";
+      case "verdivurdering":
+        return "bg-green-100 text-green-700";
+      default:
+        return "bg-slate-100 text-slate-600";
+    }
+  };
+
   const totalLeads = leads?.length || 0;
   const totalPages = pagination?.pages || 1;
 
@@ -59,15 +95,27 @@ const LeadLogs = () => {
         description="Manage all incoming leads with search, filters, and pagination."
       />
 
-      {/* Filters */}
       <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-wrap gap-4">
         <input
           type="text"
-          placeholder="Search name, email, partner..."
-          value={search}
+          placeholder="Search lead name, email, phone, ID..."
+          value={leadSearch}
           onChange={(e) => {
             setPage(1);
-            setSearch(e.target.value);
+            setPartnerSearch("");
+            setLeadSearch(e.target.value);
+          }}
+          className="border border-slate-200 px-3 py-2 rounded-md w-64"
+        />
+
+        <input
+          type="text"
+          placeholder="Search partner name..."
+          value={partnerSearch}
+          onChange={(e) => {
+            setPage(1);
+            setLeadSearch("");
+            setPartnerSearch(e.target.value);
           }}
           className="border border-slate-200 px-3 py-2 rounded-md w-64"
         />
@@ -85,9 +133,28 @@ const LeadLogs = () => {
           <option value="Complete">Complete</option>
           <option value="Reject">Reject</option>
         </select>
+        <select
+          value={formType}
+          onChange={(e) => {
+            setPage(1);
+            setFormType(e.target.value);
+          }}
+          className="border border-slate-200 px-3 py-2 rounded-md"
+        >
+          <option value="">All Lead Types</option>
+
+          {formsLoading ? (
+            <option disabled>Loading...</option>
+          ) : (
+            forms.map((form) => (
+              <option key={form._id} value={form.formTitle}>
+                {form.formTitle}
+              </option>
+            ))
+          )}
+        </select>
       </div>
 
-      {/* Lead Table */}
       <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div className="flex justify-between px-6 py-4 border-b border-slate-100">
           <p className="text-sm font-semibold text-slate-900">
@@ -106,6 +173,7 @@ const LeadLogs = () => {
                 <th className="px-6 py-3">Name</th>
                 <th className="px-6 py-3">Email</th>
                 <th className="px-6 py-3">Phone</th>
+                <th className="px-6 py-3">Lead Type</th>
                 <th className="px-6 py-3">Partner's</th>
                 <th className="px-6 py-3">Status</th>
                 <th className="px-6 py-3">Profit</th>
@@ -118,7 +186,7 @@ const LeadLogs = () => {
               {loading ? (
                 [...Array(10)].map((_, i) => (
                   <tr key={i} className="animate-pulse">
-                    {[...Array(8)].map((__, idx) => (
+                    {[...Array(9)].map((__, idx) => (
                       <td key={idx} className="px-6 py-4">
                         <div className="h-4 rounded bg-slate-100"></div>
                       </td>
@@ -128,15 +196,15 @@ const LeadLogs = () => {
               ) : error ? (
                 <tr>
                   <td
-                    colSpan="8"
+                    colSpan="10"
                     className="px-6 py-6 text-center text-red-500"
                   >
                     {error}
                   </td>
                 </tr>
               ) : totalLeads > 0 ? (
-                leads.map((lead, idx) => {
-                  const values = lead.dynamicFields?.[0]?.values || {}; // shortcut
+                leads.map((lead) => {
+                  const values = lead.dynamicFields?.[0]?.values || {};
 
                   return (
                     <tr
@@ -144,26 +212,31 @@ const LeadLogs = () => {
                       className="hover:bg-slate-50 cursor-pointer"
                     >
                       <td className="px-6 py-4">{lead.uniqueId}</td>
-
-                      {/* Name */}
                       <td className="px-6 py-4">{values.name || "-"}</td>
-
-                      {/* Email */}
                       <td className="px-6 py-4">{values.email || "-"}</td>
-
-                      {/* Phone */}
                       <td className="px-6 py-4">{values.phone || "-"}</td>
 
-                      {/* Partner Names */}
+                      {/* Lead Type */}
+                      <td className="px-6 py-4">
+                        <span
+                          className={`px-3 py-1 text-xs font-semibold rounded-full capitalize ${leadTypeBadge(
+                            values.leadType
+                          )}`}
+                        >
+                          {values.selectedFormTitle
+                            ? values.selectedFormTitle
+                            : "-"}
+                        </span>
+                      </td>
+
                       <td className="px-6 py-4">
                         {lead.partnerIds?.length
                           ? lead.partnerIds.map((p, i) => (
-                              <div key={i}>{p.name}</div>
+                              <div key={i}>{p.partnerId?.name}</div>
                             ))
                           : "-"}
                       </td>
 
-                      {/* Status */}
                       <td className="px-6 py-4">
                         <select
                           value={lead.status}
@@ -181,13 +254,11 @@ const LeadLogs = () => {
                         >
                           <option value="Pending">Pending</option>
                           <option value="Complete">Complete</option>
-                          <option value="Reject">Reject</option> {/* FIXED */}
+                          <option value="Reject">Reject</option>
                         </select>
                       </td>
 
-                      {/* Profit */}
                       <td className="px-6 py-4">
-                        {" "}
                         <input
                           type="number"
                           value={lead.profit}
@@ -199,14 +270,14 @@ const LeadLogs = () => {
                               })
                             )
                           }
-                          className="border border-slate-200 px-2 py-1 w-20 items-center rounded-md"
+                          className="border border-slate-200 px-2 py-1 w-20 rounded-md"
                         />
                       </td>
 
-                      {/* Created Date */}
                       <td className="px-6 py-4 text-sm">
                         {new Date(lead.createdAt).toLocaleDateString()}
                       </td>
+
                       <td className="px-6 py-4 text-sm">
                         <button
                           className="rounded-full border border-slate-200 p-2 text-slate-500 hover:text-slate-900"
@@ -221,7 +292,7 @@ const LeadLogs = () => {
               ) : (
                 <tr>
                   <td
-                    colSpan="8"
+                    colSpan="10"
                     className="px-6 py-6 text-center text-slate-500"
                   >
                     No leads found

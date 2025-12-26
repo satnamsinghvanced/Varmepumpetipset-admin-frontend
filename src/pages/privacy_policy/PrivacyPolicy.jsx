@@ -24,24 +24,12 @@ const modules = {
   ],
 };
 
-const formats = [
-  "header", "bold", "italic", "underline", "strike",
-  "list", "bullet", "blockquote", "code-block",
-  "align", "link", "image",
-];
-
-export const PrivacyPolicyPage = () => {
-  const dispatch = useDispatch();
-  const { items, loading } = useSelector((state) => state.privacyPolicy);
-
-  const [isEditing, setIsEditing] = useState(false);
-
-  // CONTENT FIELDS
-  const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
-
-  // SEO FIELDS
-  const [seo, setSeo] = useState({
+const privacyPolicyDefaultState = {
+  policyId: null,
+  title: "",
+  content: "",
+  lastUpdated: null,
+  seo: {
     metaTitle: "",
     metaDescription: "",
     metaKeywords: "",
@@ -61,10 +49,61 @@ export const PrivacyPolicyPage = () => {
     includeInSitemap: true,
     priority: 0.7,
     changefreq: "monthly",
-  });
+  },
+};
 
-  const [policyId, setPolicyId] = useState(null);
-  const [lastUpdated, setLastUpdated] = useState(null);
+const formats = [
+  "header", "bold", "italic", "underline", "strike",
+  "list", "blockquote", "code-block",
+  "align", "link", "image",
+];
+
+export const PrivacyPolicyPage = () => {
+  const dispatch = useDispatch();
+  const { items, loading } = useSelector((state) => state.privacyPolicy);
+
+  const [isEditing, setIsEditing] = useState(false);
+
+  const getInitialData = () => {
+    if (items && items.length > 0) {
+      const policy = items[0];
+      return {
+        policyId: policy._id,
+        title: policy.title || "Privacy Policy",
+        content: policy.description || "",
+        lastUpdated: policy.updatedAt || "",
+        seo: {
+          metaTitle: policy.metaTitle || "",
+          metaDescription: policy.metaDescription || "",
+          metaKeywords: policy.metaKeywords || "",
+          canonicalUrl: policy.canonicalUrl || "",
+          ogTitle: policy.ogTitle || "",
+          ogDescription: policy.ogDescription || "",
+          ogImage: policy.ogImage || "",
+          robots: policy.robots || privacyPolicyDefaultState.seo.robots,
+          jsonLd: policy.jsonLd || "",
+          customHead: policy.customHead || "",
+          includeInSitemap: policy.includeInSitemap ?? true,
+          priority: policy.priority ?? 0.7,
+          changefreq: policy.changefreq || "monthly",
+        },
+      };
+    }
+    return privacyPolicyDefaultState;
+  };
+
+  const [formState, setFormState] = useState(getInitialData);
+
+  // Destructure
+  const { policyId, title, content, seo, lastUpdated } = formState;
+
+  // Setters
+  const setTitle = (val) => setFormState(prev => ({ ...prev, title: val }));
+  const setContent = (val) => setFormState(prev => ({ ...prev, content: val }));
+  const setSeo = (val) => setFormState(prev => ({ ...prev, seo: val }));
+  const setPolicyId = (val) => setFormState(prev => ({ ...prev, policyId: val }));
+  const setLastUpdated = (val) => setFormState(prev => ({ ...prev, lastUpdated: val }));
+
 
   // FETCH POLICY
   useEffect(() => {
@@ -75,32 +114,26 @@ export const PrivacyPolicyPage = () => {
   useEffect(() => {
     if (items && items.length > 0) {
       const policy = items[0];
-
-      setPolicyId(policy._id);
-      setTitle(policy.title || "Privacy Policy");
-      setContent(policy.description || "");
-      setLastUpdated(policy.updatedAt || "");
-
-      setSeo({
-        metaTitle: policy.metaTitle || "",
-        metaDescription: policy.metaDescription || "",
-        metaKeywords: policy.metaKeywords || "",
-        canonicalUrl: policy.canonicalUrl || "",
-        ogTitle: policy.ogTitle || "",
-        ogDescription: policy.ogDescription || "",
-        ogImage: policy.ogImage || "",
-        robots: policy.robots || {
-          noindex: false,
-          nofollow: false,
-          noarchive: false,
-          nosnippet: false,
-          notranslate: false,
+      setFormState({
+        policyId: policy._id,
+        title: policy.title || "Privacy Policy",
+        content: policy.description || "",
+        lastUpdated: policy.updatedAt || "",
+        seo: {
+          metaTitle: policy.metaTitle || "",
+          metaDescription: policy.metaDescription || "",
+          metaKeywords: policy.metaKeywords || "",
+          canonicalUrl: policy.canonicalUrl || "",
+          ogTitle: policy.ogTitle || "",
+          ogDescription: policy.ogDescription || "",
+          ogImage: policy.ogImage || "",
+          robots: policy.robots || privacyPolicyDefaultState.seo.robots,
+          jsonLd: policy.jsonLd || "",
+          customHead: policy.customHead || "",
+          includeInSitemap: policy.includeInSitemap ?? true,
+          priority: policy.priority ?? 0.7,
+          changefreq: policy.changefreq || "monthly",
         },
-        jsonLd: policy.jsonLd || "",
-        customHead: policy.customHead || "",
-        includeInSitemap: policy.includeInSitemap ?? true,
-        priority: policy.priority ?? 0.7,
-        changefreq: policy.changefreq || "monthly",
       });
     }
   }, [items]);
@@ -113,7 +146,7 @@ export const PrivacyPolicyPage = () => {
           id: "new", // Triggers the create logic in your updated controller
           data: {
             title: "Privacy Policy",
-            description: "<h1>Privacy Policy</h1><p>Welcome to our Privacy Policy...</p>",
+            description: `<h2>1. Introduction</h2><p>At Boligtip, we value your privacy. This Privacy Policy explains how we collect, use, and protect your personal information when you visit our website or use our services (collectively, the “Service”).</p><p>By using Boligtip, you agree to this Privacy Policy. If you do not agree, please do not use our Service..</p><h2>2. Information We Collect</h2><p>We may collect the following types of information:</p><p><strong>a. Personal Information</strong> – such as your name, email address, phone number, or other details you provide when creating an account or contacting us.</p><p><strong>b. Usage Data </strong>– including your IP address, browser type, device information, and pages visited.</p><p><strong>c. Cookies and Tracking Technologies</strong> – small files stored on your device that help us analyze usage and improve user experience.</p><h2>3. How We Use Your Information</h2><p>We use the collected data to:</p><ol><li>Provide, maintain, and improve our Service.</li><li>Personalize your user experience.</li><li>Communicate with you (e.g., support, updates, offers).</li><li>Ensure security and prevent fraud.</li><li>Comply with legal obligations.</li></ol><h2>4. Sharing of Information</h2><p>We do not sell your personal data.</p><p>We may share information only in the following cases:</p><p><strong>With service providers</strong> that help us operate Boligtip (e.g., hosting, analytics).</p><p><strong>For legal reasons</strong> if required by law or to protect our rights.</p><p><strong>During business transfers </strong>such as mergers, acquisitions, or asset sales.</p><h2>5. Data Retention</h2><p>We keep your data only as long as necessary to fulfill the purposes described in this Policy or as required by law.</p><h2>6. Cookies</h2><p>Boligtip uses cookies to remember preferences, improve site performance, and analyze traffic.</p><p>You can control or disable cookies in your browser settings, though some features may not work properly if cookies are disabled.</p><h2>7. Data Security</h2><p>We use reasonable administrative, technical, and physical safeguards to protect your personal information. However, no online service is completely secure, and we cannot guarantee absolute security.</p><h2>8. Your Rights</h2><p>Depending on your location, you may have rights to:</p><p>Access and receive a copy of your personal data.</p><p>Request correction or deletion.</p><p>Withdraw consent for data processing.</p><p>Object to or limit certain uses of your information.</p><p>To exercise these rights, contact us using the details below.</p><h2>9. Third-Party Links</h2><p>Our Service may contain links to third-party websites. Boligtip is not responsible for the content or privacy practices of these external sites.</p><h2>10. Changes to This Policy</h2><p>We may update this Privacy Policy periodically. Any changes will be posted on this page with a revised “Effective Date.” Continued use of the Service after updates constitutes acceptance of the new Policy.</p><h2>11. Contact Us</h2><p>For questions or requests regarding privacy, contact us at:</p><p>📧 privacy@boligtip.com</p>`,
             ...seo,
           },
         })
@@ -245,7 +278,7 @@ export const PrivacyPolicyPage = () => {
               <ReactQuill
                 theme="snow"
                 value={content}
-                onChange={setContent}
+                onChange={(val) => setContent(val.replace(/&nbsp;/g, " "))}
                 modules={modules}
                 formats={formats}
               />

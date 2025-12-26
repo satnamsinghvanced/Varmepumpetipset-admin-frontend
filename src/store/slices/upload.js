@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import axios from "axios";
+import api from "../../api/axios";
 
 export const uploadImage = createAsyncThunk(
   "image/upload",
@@ -8,11 +8,9 @@ export const uploadImage = createAsyncThunk(
       const formData = new FormData();
       formData.append("image", file);
 
-      const { data } = await axios.post(
-        `${import.meta.env.VITE_API_URL}/image`,
-        formData,
-        { headers: { "Content-Type": "multipart/form-data" } }
-      );
+      const { data } = await api.post(`/image`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
 
       return data.fileUrl || data.url || data.image || "";
     } catch (err) {

@@ -39,7 +39,6 @@ const quillFormats = [
   "underline",
   "strike",
   "list",
-  "bullet",
   "blockquote",
   "code-block",
   "align",
@@ -339,7 +338,7 @@ const ArticleFormPage = () => {
               <ReactQuill
                 value={form.description}
                 onChange={(value) =>
-                  setForm((prev) => ({ ...prev, description: value }))
+                  setForm((prev) => ({ ...prev, description: value.replace(/&nbsp;/g, " ") }))
                 }
                 modules={quillModules}
                 formats={quillFormats}
