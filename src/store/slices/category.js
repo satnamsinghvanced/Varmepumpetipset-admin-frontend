@@ -21,10 +21,10 @@ export const createCategory = createAsyncThunk(
   async (formData, { rejectWithValue }) => {
     try {
       const res = await api.post(`/category/create`, formData);
-      toast.success(res.data.message || "Category created successfully!");
+      // toast.success(res.data.message || "Category created successfully!");
       return res.data;
     } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to create category");
+      // toast.error(err.response?.data?.message || "Failed to create category");
       return rejectWithValue(err.response?.data?.message);
     }
   }
@@ -35,10 +35,10 @@ export const updateCategory = createAsyncThunk(
   async ({ id, formData }, { rejectWithValue }) => {
     try {
       const res = await api.put(`/category/update?id=${id}`, formData);
-      toast.success(res.data.message || "Category updated successfully!");
+      // toast.success(res.data.message || "Category updated successfully!");
       return res.data;
     } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to update category");
+      // toast.error(err.response?.data?.message || "Failed to update category");
       return rejectWithValue(err.response?.data?.message);
     }
   }

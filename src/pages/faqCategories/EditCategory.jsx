@@ -31,11 +31,11 @@ const EditCategory = () => {
     }
     try {
       await dispatch(updateCategory({ id, formData: form })).unwrap();
-    //   toast.success("Category updated");
+      toast.success("Category updated");
       dispatch(getCategories());
       navigate("/faqs/categories");
     } catch (err) {
-    //   toast.error("Failed to update category");
+      toast.error("Failed to update category");
       console.error(err);
     }
   };

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
+  exportLeadsCSV,
   getAllLeads,
   getPartnerLeads,
   updateLeadProfit,
@@ -26,6 +27,8 @@ const LeadLogs = () => {
   const [partnerSearch, setPartnerSearch] = useState("");
   const [status, setStatus] = useState("");
   const [formType, setFormType] = useState("");
+  const [csvLoading, setCsvLoading] = useState(false);
+
   const { forms = [], loading: formsLoading } = useSelector(
     (s) => s.formSelect
   );
@@ -88,11 +91,29 @@ const LeadLogs = () => {
   const totalLeads = leads?.length || 0;
   const totalPages = pagination?.pages || 1;
 
+const headerButtons = [
+  {
+    value: csvLoading ? "Downloading..." : "Export All Leads Logs",
+    variant: "primary",
+    className:
+      "!bg-primary !text-white !border-primary hover:!bg-secondary hover:!border-secondary disabled:opacity-70",
+    disabled: csvLoading,
+    onClick: async () => {
+      try {
+        setCsvLoading(true);
+        await dispatch(exportLeadsCSV()).unwrap();
+      } finally {
+        setCsvLoading(false);
+      }
+    },
+  },
+];
   return (
     <div className="space-y-6">
       <PageHeader
         title="Lead Logs"
         description="Manage all incoming leads with search, filters, and pagination."
+         buttonsList={headerButtons}
       />
 
       <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-wrap gap-4">

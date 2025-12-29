@@ -12,6 +12,7 @@ import {
 import { toast } from "react-toastify";
 import { RiDeleteBin5Line } from "react-icons/ri";
 import ImageUploader from "../../UI/ImageUpload";
+import { getCompaniesAll } from "../../store/slices/companySlice";
 import ReactQuill from "react-quill-new";
 const quillModules = {
   toolbar: [
@@ -62,6 +63,7 @@ const CountiesFormPage = () => {
     selectedCounty,
   } = useSelector((state) => state.counties || {});
    const { allCompanies } = useSelector((state) => state.companies);
+
     const [companySearch, setCompanySearch] = useState("");
 
   const [form, setForm] = useState({
@@ -121,6 +123,9 @@ const CountiesFormPage = () => {
   useEffect(() => {
     dispatch(getCounties());
   }, [dispatch]);
+  useEffect(() => {
+  dispatch(getCompaniesAll());
+}, [dispatch]);
   useEffect(() => {
     if (isEditMode && selectedCounty) {
       setForm({

@@ -21,21 +21,39 @@ export const getAllLeads = createAsyncThunk(
     }
   }
 );
+export const exportLeadsCSV = createAsyncThunk(
+  "lead/exportLeadsCSV",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await api.get("/lead-logs/export/csv", {
+        responseType: "blob",
+      });
+
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "leads.csv";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+
+      return true;
+    } catch (err) {
+      return rejectWithValue("Failed to export CSV");
+    }
+  }
+);
+
 export const getPartnerLeads = createAsyncThunk(
   "lead/getPartnerLeads",
-  async (
-    { page = 1, limit = 10, search = "" },
-    { rejectWithValue }
-  ) => {
+  async ({ page = 1, limit = 10, search = "" }, { rejectWithValue }) => {
     try {
       const params = new URLSearchParams();
       params.append("page", page);
       params.append("limit", limit);
       if (search) params.append("search", search);
 
-      const res = await api.get(
-        `lead-logs/partner-leads?${params.toString()}`
-      );
+      const res = await api.get(`lead-logs/partner-leads?${params.toString()}`);
 
       return res.data;
     } catch (err) {
@@ -129,7 +147,15 @@ const leadSlice = createSlice({
         state.loading = false;
         state.error = action.payload || "Failed to load partner leads";
       })
-
+      .addCase(exportLeadsCSV.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(exportLeadsCSV.fulfilled, (state) => {
+        state.loading = false;
+      })
+      .addCase(exportLeadsCSV.rejected, (state) => {
+        state.loading = false;
+      })
       .addCase(updateLeadStatus.fulfilled, (state, action) => {
         const updated = action.payload;
         const index = state.leads.findIndex((l) => l._id === updated._id);

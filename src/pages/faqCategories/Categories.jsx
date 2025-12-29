@@ -27,10 +27,10 @@ const Categories = () => {
   const handleConfirmDelete = async () => {
     try {
       await dispatch(deleteCategory(deleteId)).unwrap();
-    //   toast.success("Category deleted");
+       toast.success("Category deleted");
       dispatch(getCategories());
     } catch (err) {
-    //   toast.error("Failed to delete category");
+       toast.error("Failed to delete category");
       console.error(err);
     }
     setIsModalOpen(false);
