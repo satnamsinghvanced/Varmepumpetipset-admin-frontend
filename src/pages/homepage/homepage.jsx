@@ -59,6 +59,7 @@ const HomePageEditor = () => {
       title: "",
       description: [""],
       subHeading: "",
+      subHeading1: "",
       image: "",
       imagePosition: "",
       buttonText: "",
@@ -139,6 +140,7 @@ const HomePageEditor = () => {
                 title: "",
                 description: [""],
                 subHeading: "",
+                subHeading1: "",
                 image: "",
                 imagePosition: "",
                 buttonText: "",
@@ -593,6 +595,15 @@ const HomePageEditor = () => {
                     onChange={(e) => {
                       const arr = [...pros];
                       arr[i] = { ...arr[i], subHeading: e.target.value };
+                      setPros(arr);
+                    }}
+                  />
+                  <Input
+                    label="Sub Heading1"
+                    value={item.subHeading1}
+                    onChange={(e) => {
+                      const arr = [...pros];
+                      arr[i] = { ...arr[i], subHeading1: e.target.value };
                       setPros(arr);
                     }}
                   />

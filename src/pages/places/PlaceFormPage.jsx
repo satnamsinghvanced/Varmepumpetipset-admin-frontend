@@ -309,7 +309,7 @@ const PlaceFormPage = () => {
         toast.success("Place updated!");
       } else {
         await dispatch(
-          createPlace({ placeData: payload, isFormData })
+          createPlace({ data: payload, isFormData })
         ).unwrap();
         toast.success("Place created!");
       }

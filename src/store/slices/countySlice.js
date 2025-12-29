@@ -53,15 +53,21 @@ export const getCountyById = createAsyncThunk(
 
 export const createCounty = createAsyncThunk(
   "county/createCounty",
-  async (countyData, { rejectWithValue }) => {
+  async ({ countyData, isFormData }, { rejectWithValue }) => {
     try {
-      const { data } = await api.post("/counties/create", countyData);
+      // If using FormData, send it directly
+      const config = isFormData
+        ? { headers: { "Content-Type": "multipart/form-data" } }
+        : {};
+      const { data } = await api.post("/counties/create", countyData, config);
       return data;
     } catch (err) {
       return rejectWithValue(err.response?.data || err.message);
     }
   }
 );
+
+
 
 export const updateCounty = createAsyncThunk(
   "county/updateCounty",
