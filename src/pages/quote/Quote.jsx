@@ -46,7 +46,7 @@ export const Quote = () => {
         initialData[q._id] = {
           heading: q.heading || "",
           description: q.description || "",
-          points: q.points || "",
+          points: Array.isArray(q.points) ? q.points.join(", ") : q.points || "",
           buttonText: q.buttonText || "",
           ctaLink: q.ctaLink || "",
         };
@@ -79,27 +79,33 @@ export const Quote = () => {
     }));
   };
 
-  const handleSave = async (id) => {
-    try {
-      // CREATE
-      if (id === "NEW") {
-        await dispatch(createQuote(formData[id])).unwrap();
-        toast.success("Quote created successfully!");
-      }
-      // UPDATE
-      else {
-        const response = await dispatch(
-          updateQuote({ id, formData: formData[id] })
-        ).unwrap();
-        toast.success(response?.message || "Quote updated successfully!");
-      }
+const handleSave = async (id) => {
+  try {
+    const payload = {
+      ...formData[id],
+      points: formData[id].points
+        ?.split(",")
+        .map((p) => p.trim())
+        .filter(Boolean),
+    };
 
-      setEditingId(null);
-      dispatch(fetchQuotes());
-    } catch (err) {
-      toast.error(err?.message || "Failed to save quote.");
+    if (id === "NEW") {
+      await dispatch(createQuote(payload)).unwrap();
+      toast.success("Quote created successfully!");
+    } else {
+      const response = await dispatch(
+        updateQuote({ id, formData: payload })
+      ).unwrap();
+      toast.success(response?.message || "Quote updated successfully!");
     }
-  };
+
+    setEditingId(null);
+    dispatch(fetchQuotes());
+  } catch (err) {
+    toast.error(err?.message || "Failed to save quote.");
+  }
+};
+
 
   const handleDelete = async (id) => {
     try {
