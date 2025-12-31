@@ -129,7 +129,7 @@ const SEOSettings = () => {
         toast.success("SEO settings created");
       }
 
-      navigate("/real-estate-agents");
+      navigate("/suppliers");
     } catch (err) {
       toast.error(err?.message || "Save failed");
     } finally {

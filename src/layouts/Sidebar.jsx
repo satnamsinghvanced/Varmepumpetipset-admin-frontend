@@ -114,7 +114,7 @@ const SideBar = ({ toggleSidebar, isMiniSidebarOpen, onCloseSidebar }) => {
           icon: FaQ,
         },
         {
-          name: "Real Estate Agents",
+          name: "Suppliers Page",
           href: ROUTES.REAL_ESTATE_AGENTS,
           icon: MdOutlineRealEstateAgent,
         },

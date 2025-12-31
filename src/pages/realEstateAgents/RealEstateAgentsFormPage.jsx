@@ -162,7 +162,7 @@ const RealEstateAgentsFormPage = () => {
         await dispatch(createAgent(form)).unwrap();
       }
 
-      navigate("/real-estate-agents");
+      navigate("/suppliers");
     } catch (err) {
       toast.error(err?.message || "Save failed");
     } finally {
@@ -186,7 +186,7 @@ const RealEstateAgentsFormPage = () => {
               variant: "white",
               className:
                 "border border-slate-300 text-slate-700 hover:border-slate-400",
-              onClick: () => navigate("/real-estate-agents"),
+              onClick: () => navigate("/suppliers"),
             },
           ],
           [navigate]

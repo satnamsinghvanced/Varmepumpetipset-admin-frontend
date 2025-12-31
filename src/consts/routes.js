@@ -52,9 +52,9 @@ export const ROUTES = {
 
   COUNTIES: "/counties",
   QUOTES: "/quotes",
-  REAL_ESTATE_AGENTS: "/real-estate-agents",
-  REAL_ESTATE_AGENTS_EDIT: "/real-estate-agent/:agentId/edit",
-  REAL_ESTATE_AGENTS_EDIT: "/real-estate-agent/:id/edit",
+  REAL_ESTATE_AGENTS: "/suppliers",
+  REAL_ESTATE_AGENTS_EDIT: "/suppliers/:agentId/edit",
+  REAL_ESTATE_AGENTS_EDIT: "/suppliers/:id/edit",
 
   SITEMAP:"/sitemap",
   CONTACTUS:"/contact",
