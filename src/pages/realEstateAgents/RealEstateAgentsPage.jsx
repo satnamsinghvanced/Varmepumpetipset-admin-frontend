@@ -87,13 +87,13 @@ const RealEstateAgentsPage = () => {
 
   const handleSave = async () => {
     if (!agent?._id) {
-        toast.error("No agent found to update");
+        toast.error("No suppliers found to update");
         return;
     }
     const res = await dispatch(updateAgent({ id: agent._id, agentData: form }));
 
     if (res.error) {
-         toast.error("Failed to update Real Estate Agents Page");
+         toast.error("Failed to update Suppliers Page");
     } else {
         //  toast.success("Real Estate Agents Page Updated Successfully!");
     }

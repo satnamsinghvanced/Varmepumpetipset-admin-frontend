@@ -49,10 +49,10 @@ export const updateAgent = createAsyncThunk(
         `/real-estate-agent/update/${id}`,
         agentData
       );
-      toast.success(data.message || "Agent updated successfully");
+      toast.success(data.message || "Supplier updated successfully");
       return data;
     } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to update agent");
+      toast.error(err.response?.data?.message || "Failed to update Suppliers");
       return rejectWithValue(err.response?.data || err.message);
     }
   }
