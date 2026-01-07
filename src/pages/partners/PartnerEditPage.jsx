@@ -92,14 +92,14 @@ export const PartnerEditPage = () => {
         fetchOptionsForQuestion(w.question, index);
       }
     });
-    partnerDetail.wishes?.forEach(async (w, index) => {
-      const question =
-        typeof w.question === "object" ? w.question.question : w.question;
+    // partnerDetail.wishes?.forEach(async (w, index) => {
+    //   const question =
+    //     typeof w.question === "object" ? w.question.question : w.question;
 
-      if (question) {
-        await fetchOptionsForQuestion(question, index);
-      }
-    });
+    //   if (question) {
+    //     await fetchOptionsForQuestion(question, index);
+    //   }
+    // });
     if (partnerDetail.leadTypes?.length) {
       setLeadTypes(
         partnerDetail.leadTypes.map((lt) => ({
@@ -496,7 +496,7 @@ export const PartnerEditPage = () => {
                 key={index}
                 className="mb-4 p-4 bg-slate-50 rounded-xl  relative"
               >
-                {wishes.length > 1 && (
+                {wishes.length > 0 && (
                   <button
                     type="button"
                     onClick={() => deleteWish(index)}

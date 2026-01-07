@@ -433,7 +433,7 @@ export const AddPartnerPage = () => {
                 key={index}
                 className="mb-4 p-4 bg-slate-50 rounded-xl  relative"
               >
-                {wishes.length > 1 && (
+                {wishes.length > 0 && (
                   <button
                     type="button"
                     onClick={() => deleteWish(index)}
