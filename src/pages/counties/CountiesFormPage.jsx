@@ -429,7 +429,7 @@ const CountiesFormPage = () => {
 
             {/* Dropdown */}
             {showCompaniesDropdown && (
-              <div className="absolute z-20 mt-2 w-full max-h-64 overflow-y-auto bg-white border rounded-xl shadow p-2">
+              <div className="z-20 mt-2 w-full max-h-64 overflow-y-auto bg-white border rounded-xl shadow p-2">
                 {/* Search input */}
                 <input
                   type="text"
