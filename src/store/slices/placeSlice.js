@@ -55,9 +55,12 @@ export const createPlace = createAsyncThunk(
 
 export const updatePlace = createAsyncThunk(
   "places/updatePlace",
-  async ({ id, placeData }, { rejectWithValue }) => {
+  async ({ id, placeData, isFormData }, { rejectWithValue }) => {
     try {
-      const { data } = await api.put(`/places/update/${id}`, placeData);
+      const config = isFormData
+        ? { headers: { "Content-Type": "multipart/form-data" } }
+        : {};
+      const { data } = await api.put(`/places/update/${id}`, placeData, config);
       return data;
     } catch (err) {
       return rejectWithValue(err.response?.data || err.message);
