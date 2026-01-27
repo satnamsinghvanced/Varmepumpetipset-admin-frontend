@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import PageHeader from "../../components/PageHeader";
 import {
   clearSelectedPlace,
@@ -12,6 +12,8 @@ const PlaceDetailPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { selectedPlace, loading } = useSelector((state) => state.places);
+  const [searchParams] = useSearchParams();
+  const page = searchParams.get("page");
 
   useEffect(() => {
     if (placeId) dispatch(getPlaceById(placeId));
@@ -24,14 +26,18 @@ const PlaceDetailPage = () => {
       variant: "white",
       className:
         "border border-slate-300 text-slate-700 hover:border-slate-400 hover:bg-white",
-      onClick: () => navigate(-1),
+      onClick: () => {
+        const redirectUrl = page ? `/places?page=${page}` : "/places";
+        navigate(redirectUrl);
+      },
     },
     {
       value: "Edit Place",
       variant: "primary",
       className:
         "!bg-primary !text-white !border-primary hover:!bg-secondary hover:!border-secondary",
-      onClick: () => navigate(`/place/${placeId}/edit`),
+      onClick: () =>
+        navigate(`/place/${placeId}/edit${page ? `?page=${page}` : ""}`),
     },
   ];
 
@@ -135,15 +141,15 @@ const PlaceDetailPage = () => {
         description="Preview the full content for this place."
         buttonsList={headerButtons}
       />
-   {selectedPlace.icon && (
-            <div className="flex justify-center mb-6">
-              <img
-                src={(selectedPlace.icon)}
-                alt={`${selectedPlace.name} icon`}
-                className="h-24 w-24 rounded-full object-cover border border-slate-200"
-              />
-            </div>
-          )}
+      {selectedPlace.icon && (
+        <div className="flex justify-center mb-6">
+          <img
+            src={selectedPlace.icon}
+            alt={`${selectedPlace.name} icon`}
+            className="h-24 w-24 rounded-full object-cover border border-slate-200"
+          />
+        </div>
+      )}
       <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div className="space-y-6 p-6">
           {/* BASIC DETAILS */}
@@ -162,7 +168,6 @@ const PlaceDetailPage = () => {
               </div>
             ))}
           </div>
-       
 
           {/* EXCERPT */}
           {selectedPlace.excerpt && (

@@ -1,5 +1,3 @@
-/* eslint-disable react/prop-types */
-
 import { Link, useLocation, useNavigate } from "react-router";
 import { HiChevronDoubleLeft } from "react-icons/hi";
 import {
@@ -46,27 +44,32 @@ const SideBar = ({ toggleSidebar, isMiniSidebarOpen, onCloseSidebar }) => {
 
   const [openDropdown, setOpenDropdown] = useState(null);
 
-  // ⭐ UNIVERSAL ACTIVE CHECK FUNCTION ⭐
   const getIsActive = (href) => {
     if (!href) return false;
 
     const path = location.pathname;
 
-    // Exact match
     if (path === href) return true;
 
-    // Nested routes
     if (path.startsWith(href + "/")) return true;
 
-    // Handle singular ↔ plural auto-match
-    // counties -> county, categories -> category
-    const singular = href.replace(/ies$/, "y").replace(/s$/, "");
-    const plural = singular.endsWith("y")
-      ? singular.slice(0, -1) + "ies"
-      : singular + "s";
+    if (href !== "/partners" && href !== "/partner") {
+      const normalizedHref = href.startsWith("/") ? href.slice(1) : href;
+      const singular = normalizedHref.replace(/ies$/, "y").replace(/s$/, "");
+      const plural = singular.endsWith("y")
+        ? singular.slice(0, -1) + "ies"
+        : singular + "s";
 
-    if (path.startsWith("/" + singular)) return true;
-    if (path.startsWith("/" + plural)) return true;
+      const singularPath = "/" + singular;
+      const pluralPath = "/" + plural;
+
+      if (path === singularPath || path.startsWith(singularPath + "/")) return true;
+      if (path === pluralPath || path.startsWith(pluralPath + "/")) return true;
+    }
+
+    if (href === "/lead-logs" && (path === "/leads" || path.startsWith("/leads/"))) {
+      return true;
+    }
 
     return false;
   };
@@ -114,7 +117,7 @@ const SideBar = ({ toggleSidebar, isMiniSidebarOpen, onCloseSidebar }) => {
           icon: FaQ,
         },
         {
-          name: "Suppliers Page",
+          name: "Real Estate Agents",
           href: ROUTES.REAL_ESTATE_AGENTS,
           icon: MdOutlineRealEstateAgent,
         },
@@ -204,16 +207,14 @@ const SideBar = ({ toggleSidebar, isMiniSidebarOpen, onCloseSidebar }) => {
   return (
     <>
       <div
-        className={`${
-          isMiniSidebarOpen ? "bg-black/40 w-full h-full fixed inset-0 z-30" : ""
-        } md:hidden`}
+        className={`${isMiniSidebarOpen ? "bg-black/40 w-full h-full fixed inset-0 z-30" : ""
+          } md:hidden`}
         onClick={onCloseSidebar}
       />
 
       <div
-        className={`fixed inset-y-0 left-0 z-40 flex h-screen flex-col border-r border-slate-100 bg-white/95 backdrop-blur-md transition-all duration-300 dark:border-blue-900 dark:bg-blue-950/95 ${
-          isMiniSidebarOpen ? "w-[280px]" : "w-[88px]"
-        }`}
+        className={`fixed inset-y-0 left-0 z-40 flex h-screen flex-col border-r border-slate-100 bg-white/95 backdrop-blur-md transition-all duration-300 dark:border-blue-900 dark:bg-blue-950/95 ${isMiniSidebarOpen ? "w-[280px]" : "w-[88px]"
+          }`}
       >
         <div className="flex items-center justify-between px-4 py-5">
           {isMiniSidebarOpen && (
@@ -239,9 +240,8 @@ const SideBar = ({ toggleSidebar, isMiniSidebarOpen, onCloseSidebar }) => {
             className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 text-slate-500 transition hover:border-slate-300 hover:text-slate-900"
           >
             <HiChevronDoubleLeft
-              className={`text-xl transition ${
-                isMiniSidebarOpen ? "" : "rotate-180"
-              }`}
+              className={`text-xl transition ${isMiniSidebarOpen ? "" : "rotate-180"
+                }`}
             />
           </button>
         </div>
@@ -259,9 +259,8 @@ const SideBar = ({ toggleSidebar, isMiniSidebarOpen, onCloseSidebar }) => {
                   return (
                     <li key={index}>
                       <button
-                        className={`relative flex w-full items-center gap-1 rounded-xl px-2 py-2 text-sm font-semibold transition text-slate-600 hover:bg-slate-100 ${
-                          isMiniSidebarOpen ? "justify-between" : "justify-center"
-                        }`}
+                        className={`relative flex w-full items-center gap-1 rounded-xl px-2 py-2 text-sm font-semibold transition text-slate-600 hover:bg-slate-100 ${isMiniSidebarOpen ? "justify-between" : "justify-center"
+                          }`}
                         onClick={() =>
                           setOpenDropdown(isOpen ? null : item.name)
                         }
@@ -287,19 +286,17 @@ const SideBar = ({ toggleSidebar, isMiniSidebarOpen, onCloseSidebar }) => {
                             <li key={i}>
                               <button
                                 onClick={() => navigate(child.href)}
-                                className={`flex w-full items-center gap-2 rounded-lg px-2 py-2 text-sm transition ${
-                                  location.pathname === child.href
-                                    ? "bg-slate-900 text-white"
-                                    : "text-slate-600 hover:bg-slate-100"
-                                }`}
+                                className={`flex w-full items-center gap-2 rounded-lg px-2 py-2 text-sm transition ${getIsActive(child.href)
+                                  ? "bg-slate-900 text-white"
+                                  : "text-slate-600 hover:bg-slate-100"
+                                  }`}
                               >
                                 {child.icon && (
                                   <span
-                                    className={`flex h-6 w-6 items-center justify-center ${
-                                      location.pathname === child.href
-                                        ? "text-white"
-                                        : "text-slate-500"
-                                    }`}
+                                    className={`flex h-6 w-6 items-center justify-center ${getIsActive(child.href)
+                                      ? "text-white"
+                                      : "text-slate-500"
+                                      }`}
                                   >
                                     <child.icon size={18} />
                                   </span>
@@ -322,16 +319,14 @@ const SideBar = ({ toggleSidebar, isMiniSidebarOpen, onCloseSidebar }) => {
                         navigate(item.href);
                         onCloseSidebar();
                       }}
-                      className={`relative flex w-full items-center gap-1 rounded-xl px-2 py-2 text-sm font-semibold transition ${
-                        isActive
-                          ? "bg-slate-900 text-white shadow-lg shadow-slate-900/10"
-                          : "text-slate-600 hover:bg-slate-100"
-                      } ${isMiniSidebarOpen ? "" : "justify-center"}`}
+                      className={`relative flex w-full items-center gap-1 rounded-xl px-2 py-2 text-sm font-semibold transition ${isActive
+                        ? "bg-slate-900 text-white shadow-lg shadow-slate-900/10"
+                        : "text-slate-600 hover:bg-slate-100"
+                        } ${isMiniSidebarOpen ? "" : "justify-center"}`}
                     >
                       <span
-                        className={`flex h-6 w-6 items-center justify-center ${
-                          isActive ? "text-white" : "text-slate-500"
-                        }`}
+                        className={`flex h-6 w-6 items-center justify-center ${isActive ? "text-white" : "text-slate-500"
+                          }`}
                       >
                         <item.icon size={18} />
                       </span>

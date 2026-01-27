@@ -1,23 +1,33 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { AiTwotoneEdit } from "react-icons/ai";
 import { RiDeleteBin5Line } from "react-icons/ri";
 import { LuFileUp, LuPlus } from "react-icons/lu";
 import { FaRegEye } from "react-icons/fa";
 import { toast } from "react-toastify";
-import { useNavigate } from "react-router";
+import { useNavigate, useSearchParams } from "react-router";
 import PageHeader from "../../components/PageHeader";
 import Pagination from "../../UI/pagination";
 import { ROUTES } from "../../consts/routes";
-import { getPlaces, importPlaces, deletePlace } from "../../store/slices/placeSlice";
+import {
+  getPlaces,
+  importPlaces,
+  deletePlace,
+} from "../../store/slices/placeSlice";
 
 export const Places = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
+  const [searchParams, setSearchParams] = useSearchParams();
   const { places, loading, error } = useSelector((state) => state.places);
+  // Initialize page from URL
+  const getInitialPage = () => {
+    const pageParam = searchParams.get("page");
+    return pageParam ? parseInt(pageParam, 10) || 1 : 1;
+  };
 
-  const [page, setPage] = useState(1);
+  const [page, setPage] = useState(getInitialPage);
   const [limit] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -27,18 +37,40 @@ export const Places = () => {
   const [search, setSearch] = useState("");
 
   // Fetch places with search support
-  const fetchPlaces = async () => {
+  const fetchPlaces = useCallback(async () => {
     try {
       const res = await dispatch(getPlaces({ page, limit, search })).unwrap();
       setTotalPages(res.totalPages || 1);
     } catch (err) {
       console.error(err);
     }
-  };
+  }, [dispatch, page, limit, search]);
+
+  // Update page when URL changes
+  useEffect(() => {
+    const pageParam = searchParams.get("page");
+    const newPage = pageParam ? parseInt(pageParam, 10) || 1 : 1;
+    if (newPage !== page) {
+      setPage(newPage);
+    }
+  }, [searchParams]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Update URL when page changes (but not when initializing)
+  useEffect(() => {
+    const pageParam = searchParams.get("page");
+    const currentPageInUrl = pageParam ? parseInt(pageParam, 10) || 1 : 1;
+    if (page !== currentPageInUrl) {
+      if (page > 1) {
+        setSearchParams({ page: page.toString() });
+      } else {
+        setSearchParams({});
+      }
+    }
+  }, [page, searchParams, setSearchParams]);
 
   useEffect(() => {
     fetchPlaces();
-  }, [dispatch, page, limit, search]);
+  }, [fetchPlaces]);
 
   const handleDeletePlace = async () => {
     if (!placeToDelete) return;
@@ -48,6 +80,7 @@ export const Places = () => {
       setShowDeleteModal(false);
       fetchPlaces();
     } catch (err) {
+      console.error("Failed to delete:", err);
       toast.error("Failed to delete");
     }
   };
@@ -58,7 +91,7 @@ export const Places = () => {
     return fileName.endsWith(".csv") || fileName.endsWith(".xlsx");
   };
 
-  const handleImportPlaces = async () => {
+  const handleImportPlaces = useCallback(async () => {
     if (!uploadFile) return toast.error("Select a file first");
 
     setShowUploadingFileLoader(true);
@@ -73,7 +106,7 @@ export const Places = () => {
         toast.success(`Import successful! ${placesInserted} records created.`);
       } else if (placesInserted > 0 && placesSkipped > 0) {
         toast.warn(
-          `Import successful with mixed results. ${placesInserted} inserted, ${placesSkipped} skipped.`
+          `Import successful with mixed results. ${placesInserted} inserted, ${placesSkipped} skipped.`,
         );
       } else if (placesInserted === 0 && placesSkipped > 0) {
         toast.info(`${placesSkipped} records skipped due to duplicates.`);
@@ -85,15 +118,16 @@ export const Places = () => {
       if (fileInputRef.current) fileInputRef.current.value = "";
       fetchPlaces();
     } catch (err) {
+      console.error("Import failed:", err);
       toast.error("Import failed");
     } finally {
       setShowUploadingFileLoader(false);
     }
-  };
+  }, [uploadFile, dispatch, fetchPlaces]);
 
   useEffect(() => {
     if (uploadFile) handleImportPlaces();
-  }, [uploadFile]);
+  }, [uploadFile, handleImportPlaces]);
 
   const headerButtons = [
     {
@@ -152,8 +186,12 @@ export const Places = () => {
       <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between px-6 py-4 gap-3">
           <div>
-            <p className="text-sm font-semibold text-slate-900">Places overview</p>
-            <p className="text-xs text-slate-500">{loading ? "Loading..." : `${totalPlaces} items`}</p>
+            <p className="text-sm font-semibold text-slate-900">
+              Places overview
+            </p>
+            <p className="text-xs text-slate-500">
+              {loading ? "Loading..." : `${totalPlaces} items`}
+            </p>
           </div>
 
           <input
@@ -195,38 +233,47 @@ export const Places = () => {
                 ))
               ) : error ? (
                 <tr>
-                  <td colSpan="7" className="px-6 py-6 text-center text-red-500">
+                  <td
+                    colSpan="7"
+                    className="px-6 py-6 text-center text-red-500"
+                  >
                     {error}
                   </td>
                 </tr>
               ) : totalPlaces > 0 ? (
                 places.data.map((place, index) => (
                   <tr key={place._id} className="hover:bg-slate-50">
-                    <td className="px-6 py-4 text-slate-500">{(page - 1) * limit + index + 1}</td>
-                    <td className="px-6 py-4 font-medium text-slate-900">{place.name}</td>
+                    <td className="px-6 py-4 text-slate-500">
+                      {(page - 1) * limit + index + 1}
+                    </td>
+                    <td className="px-6 py-4 font-medium text-slate-900">
+                      {place.name}
+                    </td>
                     <td className="px-6 py-4">{place.slug}</td>
-                    <td className="px-6 py-4">{place.title?.length > 20 ? place.title.slice(0, 20) + "..." : place.title}</td>
-                    <td className="px-6 py-4 line-clamp-1 break-words">{place.description}</td>
-                    {/* <td className="px-6 py-4">
-                      {place.isRecommended ? (
-                        <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-700">Recommended</span>
-                      ) : (
-                        <span className="px-2 py-1 text-xs rounded-full bg-red-100 text-red-700">Not Recommended</span>
-                      )}
-                    </td> */}
+                    <td className="px-6 py-4">
+                      {place.title?.length > 20
+                        ? place.title.slice(0, 20) + "..."
+                        : place.title}
+                    </td>
+                    <td className="px-6 py-4 line-clamp-1 break-words">
+                      {place.description}
+                    </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-center gap-2">
-                        
                         <button
                           className="rounded-full border border-slate-200 p-2 text-slate-500 hover:text-slate-900"
-                          onClick={() => navigate(`/place/${place._id}`)}
+                          onClick={() =>
+                            navigate(`/place/${place._id}?page=${page}`)
+                          }
                           title="Preview"
                         >
                           <FaRegEye size={16} />
                         </button>
                         <button
                           className="rounded-full border p-2 text-slate-500 hover:text-slate-900"
-                          onClick={() => navigate(`/place/${place._id}/edit`)}
+                          onClick={() =>
+                            navigate(`/place/${place._id}/Edit?page=${page}`)
+                          }
                         >
                           <AiTwotoneEdit size={16} />
                         </button>
@@ -245,7 +292,10 @@ export const Places = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="7" className="px-6 py-6 text-center text-slate-500">
+                  <td
+                    colSpan="7"
+                    className="px-6 py-6 text-center text-slate-500"
+                  >
                     No places found
                   </td>
                 </tr>

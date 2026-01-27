@@ -1,6 +1,4 @@
-/* eslint-disable react-hooks/exhaustive-deps */
-/* eslint-disable react/no-unescaped-entities */
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   exportLeadsCSV,
@@ -9,7 +7,7 @@ import {
   updateLeadProfit,
   updateLeadStatus,
 } from "../../store/slices/leadLogsSlice";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import PageHeader from "../../components/PageHeader";
 import Pagination from "../../UI/pagination";
 import { FaRegEye } from "react-icons/fa6";
@@ -20,8 +18,13 @@ const LeadLogs = () => {
   const navigate = useNavigate();
 
   const { leads = [], loading, error, pagination } = useSelector((s) => s.lead);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const getInitialPage = () => {
+    const pageParam = searchParams.get("page");
+    return pageParam ? parseInt(pageParam, 10) || 1 : 1;
+  };
 
-  const [page, setPage] = useState(1);
+  const [page, setPage] = useState(getInitialPage);
   const limit = 10;
   const [leadSearch, setLeadSearch] = useState("");
   const [partnerSearch, setPartnerSearch] = useState("");
@@ -30,7 +33,7 @@ const LeadLogs = () => {
   const [csvLoading, setCsvLoading] = useState(false);
 
   const { forms = [], loading: formsLoading } = useSelector(
-    (s) => s.formSelect
+    (s) => s.formSelect,
   );
   useEffect(() => {
     dispatch(getForms());
@@ -46,7 +49,7 @@ const LeadLogs = () => {
             search: partnerSearch,
             status,
             formType,
-          })
+          }),
         );
       } else {
         dispatch(
@@ -55,14 +58,36 @@ const LeadLogs = () => {
             limit,
             search: leadSearch,
             status,
-            formType, // ✅ ADD THIS
-          })
+            formType,
+          }),
         );
       }
     }, 400);
 
     return () => clearTimeout(delay);
   }, [page, leadSearch, partnerSearch, status, formType]);
+
+  // Update page when URL changes
+  useEffect(() => {
+    const pageParam = searchParams.get("page");
+    const newPage = pageParam ? parseInt(pageParam, 10) || 1 : 1;
+    if (newPage !== page) {
+      setPage(newPage);
+    }
+  }, [searchParams]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Update URL when page changes (but not when initializing)
+  useEffect(() => {
+    const pageParam = searchParams.get("page");
+    const currentPageInUrl = pageParam ? parseInt(pageParam, 10) || 1 : 1;
+    if (page !== currentPageInUrl) {
+      if (page > 1) {
+        setSearchParams({ page: page.toString() });
+      } else {
+        setSearchParams({});
+      }
+    }
+  }, [page, searchParams, setSearchParams]);
 
   const badgeColor = (status) => {
     switch (status) {
@@ -91,29 +116,30 @@ const LeadLogs = () => {
   const totalLeads = leads?.length || 0;
   const totalPages = pagination?.pages || 1;
 
-const headerButtons = [
-  {
-    value: csvLoading ? "Downloading..." : "Export All Leads Logs",
-    variant: "primary",
-    className:
-      "!bg-primary !text-white !border-primary hover:!bg-secondary hover:!border-secondary disabled:opacity-70",
-    disabled: csvLoading,
-    onClick: async () => {
-      try {
-        setCsvLoading(true);
-        await dispatch(exportLeadsCSV()).unwrap();
-      } finally {
-        setCsvLoading(false);
-      }
+  const headerButtons = [
+    {
+      value: csvLoading ? "Downloading..." : "Export All Leads Logs",
+      variant: "primary",
+      className:
+        "!bg-primary !text-white !border-primary hover:!bg-secondary hover:!border-secondary disabled:opacity-70",
+      disabled: csvLoading,
+      onClick: async () => {
+        try {
+          setCsvLoading(true);
+          await dispatch(exportLeadsCSV()).unwrap();
+        } finally {
+          setCsvLoading(false);
+        }
+      },
     },
-  },
-];
+  ];
+
   return (
     <div className="space-y-6">
       <PageHeader
         title="Lead Logs"
         description="Manage all incoming leads with search, filters, and pagination."
-         buttonsList={headerButtons}
+        buttonsList={headerButtons}
       />
 
       <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-wrap gap-4">
@@ -241,7 +267,7 @@ const headerButtons = [
                       <td className="px-6 py-4">
                         <span
                           className={`px-3 py-1 text-xs font-semibold rounded-full capitalize ${leadTypeBadge(
-                            values.leadType
+                            values.leadType,
                           )}`}
                         >
                           {values.selectedFormTitle
@@ -266,11 +292,11 @@ const headerButtons = [
                               updateLeadStatus({
                                 leadId: lead._id,
                                 status: e.target.value,
-                              })
+                              }),
                             )
                           }
                           className={`px-2 py-1 text-xs rounded-md cursor-pointer ${badgeColor(
-                            lead.status
+                            lead.status,
                           )}`}
                         >
                           <option value="Pending">Pending</option>
@@ -288,7 +314,7 @@ const headerButtons = [
                               updateLeadProfit({
                                 leadId: lead._id,
                                 profit: Number(e.target.value),
-                              })
+                              }),
                             )
                           }
                           className="border border-slate-200 px-2 py-1 w-20 rounded-md"

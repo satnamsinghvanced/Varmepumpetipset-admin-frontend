@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import PageHeader from "../../components/PageHeader";
 import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
@@ -51,6 +51,7 @@ const requiredFields = [
 
 const CompanyFormPage = () => {
   const { companyId } = useParams();
+  const [searchParams] = useSearchParams();
   const isEditMode = Boolean(companyId);
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -361,19 +362,20 @@ const CompanyFormPage = () => {
 
       if (isEditMode) {
         await dispatch(
-          updateCompany({ id: companyId, companyData: payload })
+          updateCompany({ id: companyId, companyData: payload }),
         ).unwrap();
         toast.success("Company updated!");
       } else {
         await dispatch(createCompany(payload)).unwrap();
         toast.success("Company created!");
       }
-
-      navigate("/companies");
+     const page = searchParams.get('page');
+      const redirectUrl = page ? `/companies?page=${page}` : "/companies";
+      navigate(redirectUrl);
     } catch (err) {
       console.error(err);
       toast.error(
-        err?.data?.message || err?.message || "Failed to save the company."
+        err?.data?.message || err?.message || "Failed to save the company.",
       );
     } finally {
       setSubmitting(false);
@@ -399,10 +401,14 @@ const CompanyFormPage = () => {
               variant: "white",
               className:
                 "border border-slate-300 text-slate-700 hover:border-slate-400 hover:bg-white",
-              onClick: () => navigate("/companies"),
+             onClick: () => {
+                const page = searchParams.get('page');
+                const redirectUrl = page ? `/companies?page=${page}` : "/companies";
+                navigate(redirectUrl);
+              },
             },
           ],
-          [navigate]
+          [navigate],
         )}
       />
 
@@ -750,8 +756,8 @@ const CompanyFormPage = () => {
               {submitting
                 ? "Saving..."
                 : isEditMode
-                ? "Save Changes"
-                : "Create Company"}
+                  ? "Save Changes"
+                  : "Create Company"}
             </button>
 
             {isDisabled && (
@@ -759,8 +765,8 @@ const CompanyFormPage = () => {
                 {isUploading
                   ? "Please wait companyImage is uploading..."
                   : hasErrors
-                  ? "Please fill all required fields to enable Save"
-                  : ""}
+                    ? "Please fill all required fields to enable Save"
+                    : ""}
               </p>
             )}
           </div>

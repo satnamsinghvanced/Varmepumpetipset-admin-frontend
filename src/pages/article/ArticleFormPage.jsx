@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import PageHeader from "../../components/PageHeader";
 import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
@@ -48,6 +48,8 @@ const quillFormats = [
 
 const ArticleFormPage = () => {
   const { articleId } = useParams();
+  const [searchParams] = useSearchParams();
+
   const isEditMode = Boolean(articleId);
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -155,10 +157,14 @@ const ArticleFormPage = () => {
         variant: "white",
         className:
           "border border-slate-300 text-slate-700 hover:border-slate-400 hover:bg-white",
-        onClick: () => navigate("/articles"),
+        onClick: () => {
+          const page = searchParams.get("page");
+          const redirectUrl = page ? `/articles?page=${page}` : "/articles";
+          navigate(redirectUrl);
+        },
       },
     ],
-    [navigate, isEditMode, articleId]
+    [navigate, isEditMode, articleId],
   );
 
   const handleChange = (e) => {
@@ -183,7 +189,7 @@ const ArticleFormPage = () => {
     // MIME type check
     if (!allowedExtensions.includes(file.type)) {
       toast.error(
-        "Invalid file type. Please upload jpeg, png, gif, webp, svg or ico."
+        "Invalid file type. Please upload jpeg, png, gif, webp, svg or ico.",
       );
       return;
     }
@@ -219,7 +225,9 @@ const ArticleFormPage = () => {
       if (isEditMode) {
         await dispatch(updateArticle({ id: articleId, formData })).unwrap();
         toast.success("Article updated!");
-        navigate(`/articles`);
+        const page = searchParams.get("page");
+        const redirectUrl = page ? `/articles?page=${page}` : "/articles";
+        navigate(redirectUrl);
       } else {
         await dispatch(createArticle(formData)).unwrap();
         toast.success("Article created!");
@@ -228,7 +236,7 @@ const ArticleFormPage = () => {
     } catch (err) {
       console.error(err);
       toast.error(
-        err?.data?.message || err?.message || "Failed to save the article."
+        err?.data?.message || err?.message || "Failed to save the article.",
       );
     } finally {
       setSubmitting(false);
@@ -338,7 +346,10 @@ const ArticleFormPage = () => {
               <ReactQuill
                 value={form.description}
                 onChange={(value) =>
-                  setForm((prev) => ({ ...prev, description: value.replace(/&nbsp;/g, " ") }))
+                  setForm((prev) => ({
+                    ...prev,
+                    description: value.replace(/&nbsp;/g, " "),
+                  }))
                 }
                 modules={quillModules}
                 formats={quillFormats}
@@ -543,8 +554,8 @@ const ArticleFormPage = () => {
               {submitting
                 ? "Saving..."
                 : isEditMode
-                ? "Save Changes"
-                : "Create Article"}
+                  ? "Save Changes"
+                  : "Create Article"}
             </button>
           </div>
         </div>

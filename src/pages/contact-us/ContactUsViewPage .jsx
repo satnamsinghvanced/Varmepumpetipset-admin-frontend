@@ -24,7 +24,7 @@ const ContactUsViewPage = () => {
 
   const headerButtons = [
     {
-      value: "Back to messages",
+      value: "Back to Contacts",
       variant: "white",
       className:
         "border border-slate-300 text-slate-700 hover:border-slate-400 hover:bg-white",
