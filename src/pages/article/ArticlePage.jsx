@@ -14,8 +14,8 @@ const ArticlePage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-
   const { articles, loading, error } = useSelector((state) => state.articles);
+
   const getInitialPage = () => {
     const pageParam = searchParams.get("page");
     return pageParam ? parseInt(pageParam, 10) || 1 : 1;
@@ -36,7 +36,7 @@ const ArticlePage = () => {
       console.error(err);
     }
   }, [dispatch, page, limit, search]);
-  // Update page when URL changes
+
   useEffect(() => {
     const pageParam = searchParams.get("page");
     const newPage = pageParam ? parseInt(pageParam, 10) || 1 : 1;
@@ -56,6 +56,7 @@ const ArticlePage = () => {
       }
     }
   }, [page, searchParams, setSearchParams]);
+
   useEffect(() => {
     fetchArticles();
   }, [fetchArticles]);
@@ -103,14 +104,12 @@ const ArticlePage = () => {
               {loading ? "Loading..." : `${totalArticles} items`}
             </p>
           </div>
-
-          {/* Search Input */}
           <input
             type="text"
             placeholder="Search articles..."
             value={search}
             onChange={(e) => {
-              setPage(1); // reset to first page on new search
+              setPage(1);
               setSearch(e.target.value);
             }}
             className="px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
@@ -124,7 +123,6 @@ const ArticlePage = () => {
                 <th className="px-6 py-4">#</th>
                 <th className="px-6 py-4">Title</th>
                 <th className="px-6 py-4">Category</th>
-                {/* <th className="px-6 py-4">Author</th> */}
                 <th className="px-6 py-4">Created At</th>
                 <th className="px-6 py-4 flex items-center justify-center">
                   Actions
@@ -164,7 +162,6 @@ const ArticlePage = () => {
                     <td className="px-6 py-4">
                       {article.categoryId?.title || "N/A"}
                     </td>
-                    {/* <td className="px-6 py-4">{article.createdBy?.username || "N/A"}</td> */}
                     <td className="px-6 py-4 text-sm">
                       {new Date(article.createdAt).toLocaleDateString()}
                     </td>

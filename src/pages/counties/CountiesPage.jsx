@@ -15,20 +15,22 @@ export const CountyPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-
   const { counties, loading, error } = useSelector((state) => state.counties);
+
   // Initialize page from URL
   const getInitialPage = () => {
-    const pageParam = searchParams.get("page");
+    const pageParam = searchParams.get('page');
     return pageParam ? parseInt(pageParam, 10) || 1 : 1;
   };
-  const [page, setPage] = useState(1);
+
+  const [page, setPage] = useState(getInitialPage);
   const [limit] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [countyToDelete, setCountyToDelete] = useState(null);
   const [search, setSearch] = useState("");
 
+  // Fetch counties with search support
   const fetchCounties = useCallback(async () => {
     try {
       const res = await dispatch(getCounties({ page, limit, search })).unwrap();
@@ -36,11 +38,11 @@ export const CountyPage = () => {
     } catch (err) {
       console.error(err);
     }
-  });
+  }, [dispatch, page, limit, search]);
 
   // Update page when URL changes
   useEffect(() => {
-    const pageParam = searchParams.get("page");
+    const pageParam = searchParams.get('page');
     const newPage = pageParam ? parseInt(pageParam, 10) || 1 : 1;
     if (newPage !== page) {
       setPage(newPage);
@@ -49,7 +51,7 @@ export const CountyPage = () => {
 
   // Update URL when page changes (but not when initializing)
   useEffect(() => {
-    const pageParam = searchParams.get("page");
+    const pageParam = searchParams.get('page');
     const currentPageInUrl = pageParam ? parseInt(pageParam, 10) || 1 : 1;
     if (page !== currentPageInUrl) {
       if (page > 1) {
@@ -59,6 +61,7 @@ export const CountyPage = () => {
       }
     }
   }, [page, searchParams, setSearchParams]);
+
   useEffect(() => {
     fetchCounties();
   }, [fetchCounties]);
@@ -99,9 +102,7 @@ export const CountyPage = () => {
       <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between px-6 py-4 gap-3">
           <div>
-            <p className="text-sm font-semibold text-slate-900">
-              Counties overview
-            </p>
+            <p className="text-sm font-semibold text-slate-900">Counties overview</p>
             <p className="text-xs text-slate-500">
               {loading ? "Loading..." : `${totalCounties} items`}
             </p>
@@ -112,7 +113,7 @@ export const CountyPage = () => {
             placeholder="Search counties..."
             value={search}
             onChange={(e) => {
-              setPage(1);
+              setPage(1); // reset to first page on search
               setSearch(e.target.value);
             }}
             className="px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
@@ -144,10 +145,7 @@ export const CountyPage = () => {
                 ))
               ) : error ? (
                 <tr>
-                  <td
-                    colSpan="4"
-                    className="px-6 py-6 text-center text-red-500"
-                  >
+                  <td colSpan="4" className="px-6 py-6 text-center text-red-500">
                     {error}
                   </td>
                 </tr>
@@ -157,9 +155,7 @@ export const CountyPage = () => {
                     <td className="px-6 py-4 text-slate-500">
                       {(page - 1) * limit + index + 1}
                     </td>
-                    <td className="px-6 py-4 font-medium text-slate-900">
-                      {county.name}
-                    </td>
+                    <td className="px-6 py-4 font-medium text-slate-900">{county.name}</td>
                     <td className="px-6 py-4">{county.slug}</td>
                     <td className="px-6 py-4">{county.excerpt}</td>
                     <td className="px-6 py-4 text-right">
@@ -173,9 +169,7 @@ export const CountyPage = () => {
                         </button>
                         <button
                           className="rounded-full border p-2 text-slate-500 hover:text-slate-900"
-                          onClick={() =>
-                            navigate(`/county/${county._id}/Edit?page=${page}`)
-                          }
+                          onClick={() => navigate(`/county/${county._id}/Edit?page=${page}`)}
                         >
                           <AiTwotoneEdit size={16} />
                         </button>
@@ -194,10 +188,7 @@ export const CountyPage = () => {
                 ))
               ) : (
                 <tr>
-                  <td
-                    colSpan="4"
-                    className="px-6 py-6 text-center text-slate-500"
-                  >
+                  <td colSpan="4" className="px-6 py-6 text-center text-slate-500">
                     No counties found
                   </td>
                 </tr>

@@ -21,7 +21,6 @@ export const Places = () => {
   const fileInputRef = useRef(null);
   const [searchParams, setSearchParams] = useSearchParams();
   const { places, loading, error } = useSelector((state) => state.places);
-  // Initialize page from URL
   const getInitialPage = () => {
     const pageParam = searchParams.get("page");
     return pageParam ? parseInt(pageParam, 10) || 1 : 1;
@@ -36,7 +35,6 @@ export const Places = () => {
   const [showUploadingFileLoader, setShowUploadingFileLoader] = useState(false);
   const [search, setSearch] = useState("");
 
-  // Fetch places with search support
   const fetchPlaces = useCallback(async () => {
     try {
       const res = await dispatch(getPlaces({ page, limit, search })).unwrap();
@@ -46,16 +44,14 @@ export const Places = () => {
     }
   }, [dispatch, page, limit, search]);
 
-  // Update page when URL changes
   useEffect(() => {
     const pageParam = searchParams.get("page");
     const newPage = pageParam ? parseInt(pageParam, 10) || 1 : 1;
     if (newPage !== page) {
       setPage(newPage);
     }
-  }, [searchParams]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [searchParams]); 
 
-  // Update URL when page changes (but not when initializing)
   useEffect(() => {
     const pageParam = searchParams.get("page");
     const currentPageInUrl = pageParam ? parseInt(pageParam, 10) || 1 : 1;

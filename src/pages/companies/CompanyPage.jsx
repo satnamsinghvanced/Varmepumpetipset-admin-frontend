@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState, useRef, useCallback } from "react"; // 👈 Added useRef
 import { useDispatch, useSelector } from "react-redux";
 import { AiTwotoneEdit } from "react-icons/ai";
 import { RiDeleteBin5Line } from "react-icons/ri";
@@ -21,17 +21,17 @@ import { FaRegEye } from "react-icons/fa";
 export const Company = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const fileInputRef = useRef(null);
   const [searchParams, setSearchParams] = useSearchParams();
+  const fileInputRef = useRef(null);
 
   const { companies, loading, error } = useSelector((state) => state.companies);
-  // Initialize page from URL
+
   const getInitialPage = () => {
-    const pageParam = searchParams.get("page");
+    const pageParam = searchParams.get('page');
     return pageParam ? parseInt(pageParam, 10) || 1 : 1;
   };
 
-  const [page, setPage] = useState(getInitialPage());
+  const [page, setPage] = useState(getInitialPage);
   const [limit] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -53,7 +53,7 @@ export const Company = () => {
   const fetchCompanies = useCallback(async () => {
     try {
       const res = await dispatch(
-        getCompanies({ page, limit, search }),
+        getCompanies({ page, limit, search })
       ).unwrap();
       setTotalPages(res.totalPages || 1);
     } catch (err) {
@@ -61,16 +61,18 @@ export const Company = () => {
     }
   }, [dispatch, page, limit, search]);
 
+  // Update page when URL changes
   useEffect(() => {
-    const pageParam = searchParams.get("page");
+    const pageParam = searchParams.get('page');
     const newPage = pageParam ? parseInt(pageParam, 10) || 1 : 1;
     if (newPage !== page) {
       setPage(newPage);
     }
-  }, [searchParams]);
+  }, [searchParams]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Update URL when page changes (but not when initializing)
   useEffect(() => {
-    const pageParam = searchParams.get("page");
+    const pageParam = searchParams.get('page');
     const currentPageInUrl = pageParam ? parseInt(pageParam, 10) || 1 : 1;
     if (page !== currentPageInUrl) {
       if (page > 1) {
@@ -226,7 +228,7 @@ export const Company = () => {
               setUploadFile(selectedFile);
             } else {
               toast.error(
-                "Invalid file type. Only CSV (.csv) and Excel (.xlsx) files are allowed.",
+                "Invalid file type. Only CSV (.csv) and Excel (.xlsx) files are allowed."
               );
 
               e.target.value = "";
@@ -342,9 +344,7 @@ export const Company = () => {
                         <button
                           className="rounded-full border p-2 text-slate-500 hover:text-slate-900"
                           onClick={() =>
-                            navigate(
-                              `/company/${company._id}/Edit?page=${page}`,
-                            )
+                            navigate(`/company/${company._id}/Edit?page=${page}`)
                           }
                         >
                           <AiTwotoneEdit size={16} />

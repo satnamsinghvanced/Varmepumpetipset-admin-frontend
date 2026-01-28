@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import PageHeader from "../../components/PageHeader";
-import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
 import { RiDeleteBin5Line } from "react-icons/ri";
 import {
@@ -15,36 +14,9 @@ import { uploadImage } from "../../store/slices/imageUpload";
 import { toast } from "react-toastify";
 import ImageUploader from "../../UI/ImageUpload";
 
-const quillModules = {
-  toolbar: [
-    [{ header: [1, 2, 3, false] }],
-    ["bold", "italic", "underline", "strike"],
-    [{ list: "ordered" }, { list: "bullet" }],
-    ["blockquote", "code-block"],
-    [{ align: [] }],
-    ["link", "image"],
-    ["clean"],
-  ],
-};
-
-const quillFormats = [
-  "header",
-  "bold",
-  "italic",
-  "underline",
-  "strike",
-  "list",
-  "blockquote",
-  "code-block",
-  "align",
-  "link",
-  "image",
-];
 
 const requiredFields = [
   "companyName",
-  // "email",
-  // "zipCode",
   "address",
   "websiteAddress",
 ];
@@ -297,21 +269,21 @@ const CompanyFormPage = () => {
       companyImage: form.companyImage || "",
       extractor: form.extractor
         ? form.extractor
-            .split(",")
-            .map((s) => s.trim())
-            .filter(Boolean)
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean)
         : [],
       brokerSites: form.brokerSites
         ? form.brokerSites
-            .split(",")
-            .map((s) => s.trim())
-            .filter(Boolean)
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean)
         : [],
       features: form.features
         ? form.features
-            .split(",")
-            .map((s) => s.trim())
-            .filter(Boolean)
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean)
         : [],
       metaTitle: form.metaTitle?.trim() || "",
       metaDescription: form.metaDescription?.trim() || "",
@@ -362,20 +334,21 @@ const CompanyFormPage = () => {
 
       if (isEditMode) {
         await dispatch(
-          updateCompany({ id: companyId, companyData: payload }),
+          updateCompany({ id: companyId, companyData: payload })
         ).unwrap();
         toast.success("Company updated!");
       } else {
         await dispatch(createCompany(payload)).unwrap();
         toast.success("Company created!");
       }
-     const page = searchParams.get('page');
+
+      const page = searchParams.get('page');
       const redirectUrl = page ? `/companies?page=${page}` : "/companies";
       navigate(redirectUrl);
     } catch (err) {
       console.error(err);
       toast.error(
-        err?.data?.message || err?.message || "Failed to save the company.",
+        err?.data?.message || err?.message || "Failed to save the company."
       );
     } finally {
       setSubmitting(false);
@@ -401,14 +374,14 @@ const CompanyFormPage = () => {
               variant: "white",
               className:
                 "border border-slate-300 text-slate-700 hover:border-slate-400 hover:bg-white",
-             onClick: () => {
+              onClick: () => {
                 const page = searchParams.get('page');
                 const redirectUrl = page ? `/companies?page=${page}` : "/companies";
                 navigate(redirectUrl);
               },
             },
           ],
-          [navigate],
+          [navigate]
         )}
       />
 
@@ -440,10 +413,9 @@ const CompanyFormPage = () => {
                   value={form[field.name] ?? ""}
                   onChange={handleChange}
                   className={`mt-1 w-full rounded-xl border px-3 py-2 text-sm text-slate-900 outline-none transition
-                    ${
-                      errors[field.name]
-                        ? "border-red-400 focus:border-red-500"
-                        : "border-slate-200 focus:border-primary"
+                    ${errors[field.name]
+                      ? "border-red-400 focus:border-red-500"
+                      : "border-slate-200 focus:border-primary"
                     }`}
                 />
                 {errors[field.name] && (
@@ -556,9 +528,8 @@ const CompanyFormPage = () => {
                       typeof previewImage === "string"
                         ? previewImage.startsWith("http")
                           ? previewImage
-                          : `${
-                              import.meta.env.VITE_API_URL_IMAGE
-                            }/${previewImage.replace(/^\//, "")}`
+                          : `${import.meta.env.VITE_API_URL_IMAGE
+                          }/${previewImage.replace(/^\//, "")}`
                         : ""
                     }
                     alt="Preview"

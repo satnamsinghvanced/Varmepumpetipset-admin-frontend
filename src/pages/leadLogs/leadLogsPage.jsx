@@ -67,16 +67,14 @@ const LeadLogs = () => {
     return () => clearTimeout(delay);
   }, [page, leadSearch, partnerSearch, status, formType]);
 
-  // Update page when URL changes
   useEffect(() => {
     const pageParam = searchParams.get("page");
     const newPage = pageParam ? parseInt(pageParam, 10) || 1 : 1;
     if (newPage !== page) {
       setPage(newPage);
     }
-  }, [searchParams]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [searchParams]); 
 
-  // Update URL when page changes (but not when initializing)
   useEffect(() => {
     const pageParam = searchParams.get("page");
     const currentPageInUrl = pageParam ? parseInt(pageParam, 10) || 1 : 1;
