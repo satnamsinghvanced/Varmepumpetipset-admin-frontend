@@ -105,7 +105,6 @@ const ContactUsListPage = () => {
                 <th className="px-6 py-3">Name</th>
                 <th className="px-6 py-3">Email</th>
                 <th className="px-6 py-3">Phone</th>
-                {/* <th className="px-6 py-3">Message</th> */}
                 <th className="px-6 py-3">Actions</th>
               </tr>
             </thead>
@@ -139,7 +138,6 @@ const ContactUsListPage = () => {
                     </td>
                     <td className="px-6 py-4">{item.email}</td>
                     <td className="px-6 py-4">{item.phone || "-"}</td>
-                    {/* <td className="px-6 py-4 line-clamp-2">{item.message}</td> */}
 
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3 text-center">

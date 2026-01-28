@@ -16,9 +16,10 @@ import { getForms } from "../../store/slices/formSelectSlice";
 const LeadLogs = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const { leads = [], loading, error, pagination } = useSelector((s) => s.lead);
-  const [searchParams, setSearchParams] = useSearchParams();
+
   const getInitialPage = () => {
     const pageParam = searchParams.get("page");
     return pageParam ? parseInt(pageParam, 10) || 1 : 1;
@@ -66,14 +67,13 @@ const LeadLogs = () => {
 
     return () => clearTimeout(delay);
   }, [page, leadSearch, partnerSearch, status, formType]);
-
   useEffect(() => {
     const pageParam = searchParams.get("page");
     const newPage = pageParam ? parseInt(pageParam, 10) || 1 : 1;
     if (newPage !== page) {
       setPage(newPage);
     }
-  }, [searchParams]); 
+  }, [searchParams]);
 
   useEffect(() => {
     const pageParam = searchParams.get("page");
@@ -131,7 +131,6 @@ const LeadLogs = () => {
       },
     },
   ];
-
   return (
     <div className="space-y-6">
       <PageHeader
@@ -260,8 +259,6 @@ const LeadLogs = () => {
                       <td className="px-6 py-4">{values.name || "-"}</td>
                       <td className="px-6 py-4">{values.email || "-"}</td>
                       <td className="px-6 py-4">{values.phone || "-"}</td>
-
-                      {/* Lead Type */}
                       <td className="px-6 py-4">
                         <span
                           className={`px-3 py-1 text-xs font-semibold rounded-full capitalize ${leadTypeBadge(
@@ -326,7 +323,9 @@ const LeadLogs = () => {
                       <td className="px-6 py-4 text-sm">
                         <button
                           className="rounded-full border border-slate-200 p-2 text-slate-500 hover:text-slate-900"
-                          onClick={() => navigate(`/leads/${lead._id}`)}
+                          onClick={() =>
+                            navigate(`/leads/${lead._id}?page=${page}`)
+                          }
                         >
                           <FaRegEye size={16} />
                         </button>

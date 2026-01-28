@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch, useSelector, shallowEqual } from "react-redux";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import PageHeader from "../../components/PageHeader";
 import "react-quill-new/dist/quill.snow.css";
@@ -113,7 +113,7 @@ const PlaceFormPage = () => {
         excerpt: selectedPlace.excerpt || "",
         title: selectedPlace.title || "",
         description: selectedPlace.description || "",
-        // isRecommended: selectedPlace.isRecommended || false,
+        icon: selectedPlace.icon || "",
         rank: selectedPlace.rank || 0,
         companies: Array.isArray(selectedPlace.companies)
           ? selectedPlace.companies.map((c, index) => ({
@@ -126,20 +126,12 @@ const PlaceFormPage = () => {
         metaDescription: selectedPlace.metaDescription || "",
         metaKeywords: selectedPlace.metaKeywords || "",
         metaImage: selectedPlace.metaImage || "",
-
         canonicalUrl: selectedPlace.canonicalUrl || "",
         jsonLd: selectedPlace.jsonLd || "",
-
         ogTitle: selectedPlace.ogTitle || "",
         ogDescription: selectedPlace.ogDescription || "",
         ogImage: selectedPlace.ogImage || "",
         ogType: selectedPlace.ogType || "website",
-
-        // publishedDate: selectedPlace.publishedDate ||"",
-        // lastUpdatedDate: selectedPlace.lastUpdatedDate ||"",
-        // showPublishedDate: selectedPlace.showPublishedDate ||false,
-        // showLastUpdatedDate: selectedPlace.showLastUpdatedDate ||false,
-
         robots: selectedPlace.robots,
       });
       setPreviewImage(selectedPlace.icon || "");
@@ -180,7 +172,6 @@ const PlaceFormPage = () => {
     setImageFile(file || null);
     setPreviewImage(file ? URL.createObjectURL(file) : "");
 
-    // update form.icon to the new file (or URL if already uploaded)
     setForm((prev) => ({
       ...prev,
       icon: file ? URL.createObjectURL(file) : "",
@@ -194,7 +185,6 @@ const PlaceFormPage = () => {
     title: form.title || "",
     icon: form.icon || "",
     description: form.description || "",
-    // isRecommended: form.isRecommended ,
     rank: Number(form.rank) || 0,
     companies: form.companies.map((c, index) => ({
       companyId: c.companyId,
@@ -214,7 +204,6 @@ const PlaceFormPage = () => {
     ogImage: form.ogImage || "",
     ogType: form.ogType || "website",
 
-    // Robots
     robots: {
       noindex: !!form.robots.noindex,
       nofollow: !!form.robots.nofollow,
@@ -240,7 +229,6 @@ const PlaceFormPage = () => {
       let isFormData = false;
 
       if (imageFile) {
-        // Use FormData when uploading a file
         isFormData = true;
         payload = new FormData();
         payload.append("name", form.name);
@@ -251,11 +239,7 @@ const PlaceFormPage = () => {
         payload.append("description", form.description);
         payload.append("rank", form.rank);
         payload.append("icon", imageFile);
-
-        // Append companies as JSON string
         payload.append("companies", JSON.stringify(form.companies));
-
-        // SEO and OG
         payload.append("metaTitle", form.metaTitle);
         payload.append("metaDescription", form.metaDescription);
         payload.append("metaKeywords", form.metaKeywords);
@@ -267,10 +251,8 @@ const PlaceFormPage = () => {
         payload.append("ogImage", form.ogImage);
         payload.append("ogType", form.ogType);
 
-        // Robots
         payload.append("robots", JSON.stringify(form.robots));
       } else {
-        // No file: normal JSON payload
         payload = buildPayload();
       }
 
@@ -579,41 +561,6 @@ const PlaceFormPage = () => {
                 })}
               </div>
             </div>
-
-            {/* <div className="md:col-span-2">
-              <label
-                htmlFor="isRecommended-toggle"
-                className="flex items-center cursor-pointer pt-2"
-              >
-                <div className="relative">
-                  <input
-                    type="checkbox"
-                    name="isRecommended"
-                    checked={form.isRecommended}
-                    onChange={handleChange}
-                    id="isRecommended-toggle"
-                    className="sr-only"
-                  />
-
-                  <div
-                    className={`w-11 h-6 rounded-full shadow-inner transition-colors duration-300 ease-in-out ${
-                      form.isRecommended ? "bg-primary" : "bg-slate-300"
-                    }`}
-                  ></div>
-
-                  <div
-                    className={`dot absolute left-0.5 top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-300 ease-in-out ${
-                      form.isRecommended ? "translate-x-full" : "translate-x-0"
-                    }`}
-                  ></div>
-                </div>
-
-                <span className="ml-3 text-sm font-semibold text-slate-700 uppercase tracking-wide">
-                  Recommended Place
-                </span>
-              </label>
-            </div> */}
-
             <div className="md:col-span-2">
               <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                 Excerpt
@@ -631,13 +578,11 @@ const PlaceFormPage = () => {
           <div className="mt-4">
             <label className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
               Description
-              {/* Tooltip */}
               <span className="relative flex items-center group">
                 <span className="flex h-4 w-4 items-center justify-center rounded-full border border-slate-300 text-[10px] font-bold text-slate-500 cursor-pointer select-none">
                   i
                 </span>
 
-                {/* Tooltip content */}
                 <span className="pointer-events-none absolute left-1/2 top-full z-20 mt-2 w-72 -translate-x-1/2 rounded-lg bg-slate-900 px-3 py-2 text-xs font-normal text-white opacity-0 shadow-xl transition-opacity duration-200 group-hover:opacity-100">
                   Please use <i>##</i> for H2 tags and <i>#</i> for H3 tags. The
                   remaining text should stay unchanged, and please ensure the
@@ -680,6 +625,7 @@ const PlaceFormPage = () => {
                     onClick={() => {
                       setImageFile(null);
                       setPreviewImage("");
+                      setForm((prev) => ({ ...prev, icon: "" }));
                     }}
                     title="Remove image"
                   >
@@ -701,11 +647,9 @@ const PlaceFormPage = () => {
           </div>
 
           <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-6 mt-6">
-            {/* SEO SECTION */}
             <div className="pt-6">
               <h2 className="text-xl font-bold mb-4">SEO Settings</h2>
 
-              {/* Meta Title */}
               <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                 Meta Title
               </label>
@@ -717,7 +661,6 @@ const PlaceFormPage = () => {
                 }
               />
 
-              {/* Meta Description */}
               <label className="mt-4 text-xs font-semibold uppercase tracking-wide text-slate-500">
                 Meta Description
               </label>
@@ -728,8 +671,6 @@ const PlaceFormPage = () => {
                   setForm({ ...form, metaDescription: e.target.value })
                 }
               />
-
-              {/* Keywords */}
               <label className="mt-4 text-xs font-semibold uppercase tracking-wide text-slate-500">
                 Meta Keywords (comma separated)
               </label>
@@ -741,7 +682,6 @@ const PlaceFormPage = () => {
                 }
               />
 
-              {/* Meta Image */}
               <ImageUploader
                 label="Meta Image"
                 value={form.metaImage}
@@ -749,7 +689,6 @@ const PlaceFormPage = () => {
               />
             </div>
 
-            {/* OG TAGS */}
             <div className="border-t pt-6">
               <h2 className="text-xl font-bold mb-4">Open Graph (OG) Tags</h2>
 
@@ -789,7 +728,6 @@ const PlaceFormPage = () => {
               />
             </div>
 
-            {/* ADVANCED SEO */}
             <div className="border-t pt-6">
               <h2 className="text-xl font-bold mb-4">Advanced SEO</h2>
 
@@ -824,8 +762,6 @@ const PlaceFormPage = () => {
                 }
               />
             </div>
-
-            {/* ROBOTS SETTINGS */}
             <div className="border-t pt-6">
               <h2 className="text-xl font-bold mb-4">Robots Settings</h2>
 

@@ -32,7 +32,6 @@ const ContactUsViewPage = () => {
     },
   ];
 
-  // ---------------- SKELETON LOADER ----------------
   if (loading && !selected) {
     return (
       <div className="space-y-6">

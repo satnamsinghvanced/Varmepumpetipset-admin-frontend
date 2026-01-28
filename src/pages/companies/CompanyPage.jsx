@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useCallback } from "react"; // 👈 Added useRef
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { AiTwotoneEdit } from "react-icons/ai";
 import { RiDeleteBin5Line } from "react-icons/ri";
@@ -49,7 +49,6 @@ export const Company = () => {
 
   const [uploadFile, setUploadFile] = useState(null);
 
-  // Fetch companies with search support
   const fetchCompanies = useCallback(async () => {
     try {
       const res = await dispatch(
@@ -61,16 +60,13 @@ export const Company = () => {
     }
   }, [dispatch, page, limit, search]);
 
-  // Update page when URL changes
   useEffect(() => {
     const pageParam = searchParams.get('page');
     const newPage = pageParam ? parseInt(pageParam, 10) || 1 : 1;
     if (newPage !== page) {
       setPage(newPage);
     }
-  }, [searchParams]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Update URL when page changes (but not when initializing)
+  }, [searchParams]); 
   useEffect(() => {
     const pageParam = searchParams.get('page');
     const currentPageInUrl = pageParam ? parseInt(pageParam, 10) || 1 : 1;
@@ -336,7 +332,7 @@ export const Company = () => {
                       <div className="flex items-center justify-center gap-2">
                         <button
                           className="rounded-full border border-slate-200 p-2 text-slate-500 hover:text-slate-900"
-                          onClick={() => navigate(`/company/${company._id}`)}
+                          onClick={() => navigate(`/company/${company._id}?page=${page}`)}
                           title="Preview"
                         >
                           <FaRegEye size={16} />

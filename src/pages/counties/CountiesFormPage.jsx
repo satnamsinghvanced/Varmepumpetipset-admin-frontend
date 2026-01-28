@@ -49,12 +49,16 @@ const CountiesFormPage = () => {
     description: "",
     icon: "",
     companies: [],
+
+    // SEO
     metaTitle: "",
     metaDescription: "",
     metaKeywords: "",
     metaImage: "",
+
     canonicalUrl: "",
     jsonLd: "",
+
     ogTitle: "",
     ogDescription: "",
     ogImage: "",
@@ -249,14 +253,17 @@ const CountiesFormPage = () => {
         isFormData = true;
         payload = new FormData();
 
+        // Append all top-level fields
         payload.append("name", form.name);
         payload.append("slug", form.slug);
         payload.append("excerpt", form.excerpt);
         payload.append("title", form.title);
         payload.append("description", form.description);
 
+        // File
         payload.append("icon", imageFile);
 
+        // SEO & robots
         payload.append("metaTitle", form.metaTitle);
         payload.append("metaDescription", form.metaDescription);
         payload.append("metaKeywords", form.metaKeywords);
@@ -342,7 +349,7 @@ const CountiesFormPage = () => {
               },
             },
           ],
-          [navigate],
+          [navigate, searchParams],
         )}
       />
 

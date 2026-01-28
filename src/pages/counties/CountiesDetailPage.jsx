@@ -1,15 +1,17 @@
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import PageHeader from "../../components/PageHeader";
 
-import { getCountyById ,clearSelectedCounty} from "../../store/slices/countySlice";
+import { getCountyById, clearSelectedCounty } from "../../store/slices/countySlice";
 
 const CountiesDetailPage = () => {
   const { countyId } = useParams();
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { selectedCounty, loading } = useSelector((state) => state.counties);
+  const [searchParams] = useSearchParams();
+  const page = searchParams.get("page");
 
   useEffect(() => {
     if (countyId) dispatch(getCountyById(countyId));
@@ -22,14 +24,17 @@ const CountiesDetailPage = () => {
       variant: "white",
       className:
         "border border-slate-300 text-slate-700 hover:border-slate-400 hover:bg-white",
-      onClick: () => navigate(-1),
+      onClick: () => {
+        const redirectUrl = page ? `/counties?page=${page}` : "/counties";
+        navigate(redirectUrl);
+      },
     },
     {
       value: "Edit County",
       variant: "primary",
       className:
         "!bg-primary !text-white !border-primary hover:!bg-secondary hover:!border-secondary",
-      onClick: () => navigate(`/county/${countyId}/edit`),
+      onClick: () => navigate(`/county/${countyId}/edit${page ? `?page=${page}` : ""}`),
     },
   ];
 
@@ -133,15 +138,15 @@ const CountiesDetailPage = () => {
         description="Preview the full content for this county."
         buttonsList={headerButtons}
       />
-   {selectedCounty.icon && (
-            <div className="flex justify-center mb-6">
-              <img
-                src={(selectedCounty.icon)}
-                alt={`${selectedCounty.name} icon`}
-                className="h-24 w-24 rounded-full object-cover border border-slate-200"
-              />
-            </div>
-          )}
+      {selectedCounty.icon && (
+        <div className="flex justify-center mb-6">
+          <img
+            src={(selectedCounty.icon)}
+            alt={`${selectedCounty.name} icon`}
+            className="h-24 w-24 rounded-full object-cover border border-slate-200"
+          />
+        </div>
+      )}
       <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div className="space-y-6 p-6">
           {/* BASIC DETAILS */}
@@ -160,7 +165,7 @@ const CountiesDetailPage = () => {
               </div>
             ))}
           </div>
-       
+
 
           {/* EXCERPT */}
           {selectedCounty.excerpt && (
@@ -196,7 +201,7 @@ const CountiesDetailPage = () => {
             </p>
 
             {Array.isArray(selectedCounty.companies) &&
-            selectedCounty.companies.length > 0 ? (
+              selectedCounty.companies.length > 0 ? (
               <div className="space-y-3">
                 {[...selectedCounty.companies]
                   .sort((a, b) => (a.rank ?? 0) - (b.rank ?? 0))

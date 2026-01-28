@@ -14,9 +14,10 @@ import { uploadImage } from "../../store/slices/imageUpload";
 import { toast } from "react-toastify";
 import ImageUploader from "../../UI/ImageUpload";
 
-
 const requiredFields = [
   "companyName",
+  // "email",
+  // "zipCode",
   "address",
   "websiteAddress",
 ];
@@ -381,7 +382,7 @@ const CompanyFormPage = () => {
               },
             },
           ],
-          [navigate]
+          [navigate, searchParams]
         )}
       />
 

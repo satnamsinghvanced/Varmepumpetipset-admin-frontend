@@ -252,7 +252,6 @@ const SideBar = ({ toggleSidebar, isMiniSidebarOpen, onCloseSidebar }) => {
               {navigationRoutes.map((item, index) => {
                 const isActive = getIsActive(item.href);
 
-                // ------- DROPDOWN -------
                 if (item.isDropdown) {
                   const isOpen = openDropdown === item.name;
 
@@ -310,8 +309,6 @@ const SideBar = ({ toggleSidebar, isMiniSidebarOpen, onCloseSidebar }) => {
                     </li>
                   );
                 }
-
-                // ------- NORMAL ITEMS -------
                 return (
                   <li key={index}>
                     <button

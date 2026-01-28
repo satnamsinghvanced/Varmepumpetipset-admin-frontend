@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import PageHeader from "../../components/PageHeader";
 import { FaRegCopy } from "react-icons/fa6";
 import { toast } from "react-toastify";
@@ -9,11 +9,7 @@ import {
   updateLeadStatus,
 } from "../../store/slices/leadLogsSlice";
 import api from "../../api/axios";
-const escapeCSV = (value) => {
-  if (value === null || value === undefined) return "";
-  const str = String(value).replace(/"/g, '""');
-  return `"${str}"`;
-};
+
 
 const LeadDetails = () => {
   const { id } = useParams();
@@ -21,6 +17,8 @@ const LeadDetails = () => {
   const navigate = useNavigate();
 
   const { selectedLead, loading } = useSelector((s) => s.lead);
+  const [searchParams] = useSearchParams();
+  const page = searchParams.get("page");
   const [partnerPrices, setPartnerPrices] = useState([]);
   const [status, setStatus] = useState("");
   const [profit, setProfit] = useState(0);
@@ -52,7 +50,6 @@ const LeadDetails = () => {
     dispatch(updateLeadStatus({ leadId: id, status: newStatus }));
   };
 
-  // ✅ Handle per-partner lead price update
   const handlePartnerPriceChange = async (partnerId, value) => {
     const updated = partnerPrices.map((p) =>
       p.partnerId === partnerId ? { ...p, leadPrice: Number(value) } : p
@@ -68,7 +65,7 @@ const LeadDetails = () => {
 
       if (res.data.success) {
         toast.success("Partner lead price updated!");
-        setProfit(res.data.data.profit); // update total profit from backend
+        setProfit(res.data.data.profit); 
       } else {
         toast.error(res.data.message || "Failed to update price");
       }
@@ -81,8 +78,6 @@ const LeadDetails = () => {
   const handleProfitChange = (e) => {
     const newProfit = Number(e.target.value);
     setProfit(newProfit);
-    // Optional: If you still want to update total profit manually
-    // axios.put("/update-lead-profit", { leadId: id, profit: newProfit })
   };
   const exportToCSV = () => {
     if (!selectedLead) return;
@@ -94,7 +89,6 @@ const LeadDetails = () => {
 
     const add = (...cols) => rows.push(cols);
 
-    // ================= LEAD SUMMARY =================
     add("Section", "Field", "Value");
     add("Lead Summary", "Lead ID", selectedLead.uniqueId);
     add("Lead Summary", "Status", selectedLead.status);
@@ -172,12 +166,12 @@ const LeadDetails = () => {
           entry.match === true
             ? "Matched"
             : entry.match === false
-            ? "Not Matched"
-            : entry.limitReached === false
-            ? "Passed"
-            : entry.isPremium
-            ? "Ranked"
-            : "Checked",
+              ? "Not Matched"
+              : entry.limitReached === false
+                ? "Passed"
+                : entry.isPremium
+                  ? "Ranked"
+                  : "Checked",
           JSON.stringify(entry)
         );
       });
@@ -202,7 +196,10 @@ const LeadDetails = () => {
       variant: "white",
       className:
         "border border-slate-300 text-slate-700 hover:border-slate-400 hover:bg-white",
-      onClick: () => navigate(-1),
+      onClick: () => {
+        const redirectUrl = page ? `/lead-logs?page=${page}` : "/lead-logs";
+        navigate(redirectUrl);
+      },
     },
     {
       value: "Export CSV",
@@ -361,13 +358,12 @@ const LeadDetails = () => {
 
                   <div className="text-right">
                     <span
-                      className={`px-2 py-1 rounded text-xs font-semibold ${
-                        er.status === "sent"
-                          ? "bg-green-100 text-green-700"
-                          : er.status === "failed"
+                      className={`px-2 py-1 rounded text-xs font-semibold ${er.status === "sent"
+                        ? "bg-green-100 text-green-700"
+                        : er.status === "failed"
                           ? "bg-red-100 text-red-700"
                           : "bg-yellow-100 text-yellow-700"
-                      }`}
+                        }`}
                     >
                       {er.status.toUpperCase()}
                     </span>

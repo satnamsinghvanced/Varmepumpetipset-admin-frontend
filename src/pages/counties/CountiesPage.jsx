@@ -17,7 +17,6 @@ export const CountyPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { counties, loading, error } = useSelector((state) => state.counties);
 
-  // Initialize page from URL
   const getInitialPage = () => {
     const pageParam = searchParams.get('page');
     return pageParam ? parseInt(pageParam, 10) || 1 : 1;
@@ -30,7 +29,6 @@ export const CountyPage = () => {
   const [countyToDelete, setCountyToDelete] = useState(null);
   const [search, setSearch] = useState("");
 
-  // Fetch counties with search support
   const fetchCounties = useCallback(async () => {
     try {
       const res = await dispatch(getCounties({ page, limit, search })).unwrap();
@@ -40,16 +38,14 @@ export const CountyPage = () => {
     }
   }, [dispatch, page, limit, search]);
 
-  // Update page when URL changes
   useEffect(() => {
     const pageParam = searchParams.get('page');
     const newPage = pageParam ? parseInt(pageParam, 10) || 1 : 1;
     if (newPage !== page) {
       setPage(newPage);
     }
-  }, [searchParams]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [searchParams]); 
 
-  // Update URL when page changes (but not when initializing)
   useEffect(() => {
     const pageParam = searchParams.get('page');
     const currentPageInUrl = pageParam ? parseInt(pageParam, 10) || 1 : 1;
@@ -113,7 +109,7 @@ export const CountyPage = () => {
             placeholder="Search counties..."
             value={search}
             onChange={(e) => {
-              setPage(1); // reset to first page on search
+              setPage(1);
               setSearch(e.target.value);
             }}
             className="px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
@@ -162,7 +158,7 @@ export const CountyPage = () => {
                       <div className="flex items-center justify-center gap-2">
                         <button
                           className="rounded-full border border-slate-200 p-2 text-slate-500 hover:text-slate-900"
-                          onClick={() => navigate(`/county/${county._id}`)}
+                          onClick={() => navigate(`/county/${county._id}?page=${page}`)}
                           title="Preview"
                         >
                           <FaRegEye size={16} />

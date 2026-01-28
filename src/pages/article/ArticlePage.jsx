@@ -17,7 +17,7 @@ const ArticlePage = () => {
   const { articles, loading, error } = useSelector((state) => state.articles);
 
   const getInitialPage = () => {
-    const pageParam = searchParams.get("page");
+    const pageParam = searchParams.get('page');
     return pageParam ? parseInt(pageParam, 10) || 1 : 1;
   };
 
@@ -38,15 +38,16 @@ const ArticlePage = () => {
   }, [dispatch, page, limit, search]);
 
   useEffect(() => {
-    const pageParam = searchParams.get("page");
+    const pageParam = searchParams.get('page');
     const newPage = pageParam ? parseInt(pageParam, 10) || 1 : 1;
     if (newPage !== page) {
       setPage(newPage);
     }
-  }, [searchParams]);
+  }, [searchParams]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Update URL when page changes (but not when initializing)
   useEffect(() => {
-    const pageParam = searchParams.get("page");
+    const pageParam = searchParams.get('page');
     const currentPageInUrl = pageParam ? parseInt(pageParam, 10) || 1 : 1;
     if (page !== currentPageInUrl) {
       if (page > 1) {
@@ -97,19 +98,19 @@ const ArticlePage = () => {
       <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between px-6 py-4 gap-3">
           <div>
-            <p className="text-sm font-semibold text-slate-900">
-              Articles overview
-            </p>
+            <p className="text-sm font-semibold text-slate-900">Articles overview</p>
             <p className="text-xs text-slate-500">
               {loading ? "Loading..." : `${totalArticles} items`}
             </p>
           </div>
+
+          {/* Search Input */}
           <input
             type="text"
             placeholder="Search articles..."
             value={search}
             onChange={(e) => {
-              setPage(1);
+              setPage(1); // reset to first page on new search
               setSearch(e.target.value);
             }}
             className="px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
@@ -123,10 +124,9 @@ const ArticlePage = () => {
                 <th className="px-6 py-4">#</th>
                 <th className="px-6 py-4">Title</th>
                 <th className="px-6 py-4">Category</th>
+                {/* <th className="px-6 py-4">Author</th> */}
                 <th className="px-6 py-4">Created At</th>
-                <th className="px-6 py-4 flex items-center justify-center">
-                  Actions
-                </th>
+                <th className="px-6 py-4 flex items-center justify-center">Actions</th>
               </tr>
             </thead>
 
@@ -143,43 +143,29 @@ const ArticlePage = () => {
                 ))
               ) : error ? (
                 <tr>
-                  <td
-                    colSpan="6"
-                    className="px-6 py-6 text-center text-red-500"
-                  >
+                  <td colSpan="6" className="px-6 py-6 text-center text-red-500">
                     {error}
                   </td>
                 </tr>
               ) : totalArticles > 0 ? (
                 articles.data.map((article, index) => (
                   <tr key={article._id} className="hover:bg-slate-50">
-                    <td className="px-6 py-4 text-slate-500">
-                      {(page - 1) * limit + index + 1}
-                    </td>
-                    <td className="px-6 py-4 font-medium text-slate-900">
-                      {article.title}
-                    </td>
-                    <td className="px-6 py-4">
-                      {article.categoryId?.title || "N/A"}
-                    </td>
-                    <td className="px-6 py-4 text-sm">
-                      {new Date(article.createdAt).toLocaleDateString()}
-                    </td>
+                    <td className="px-6 py-4 text-slate-500">{(page - 1) * limit + index + 1}</td>
+                    <td className="px-6 py-4 font-medium text-slate-900">{article.title}</td>
+                    <td className="px-6 py-4">{article.categoryId?.title || "N/A"}</td>
+                    {/* <td className="px-6 py-4">{article.createdBy?.username || "N/A"}</td> */}
+                    <td className="px-6 py-4 text-sm">{new Date(article.createdAt).toLocaleDateString()}</td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-center gap-2">
                         <button
                           className="rounded-full border p-2 text-slate-500 hover:text-slate-900"
-                          onClick={() => navigate(`/articles/${article._id}`)}
+                          onClick={() => navigate(`/articles/${article._id}?page=${page}`)}
                         >
                           <FaRegEye size={16} />
                         </button>
                         <button
                           className="rounded-full border p-2 text-slate-500 hover:text-slate-900"
-                          onClick={() =>
-                            navigate(
-                              `/articles/${article._id}/edit?page=${page}`,
-                            )
-                          }
+                          onClick={() => navigate(`/articles/${article._id}/edit?page=${page}`)}
                         >
                           <AiTwotoneEdit size={16} />
                         </button>
@@ -198,10 +184,7 @@ const ArticlePage = () => {
                 ))
               ) : (
                 <tr>
-                  <td
-                    colSpan="6"
-                    className="px-6 py-6 text-center text-slate-500"
-                  >
+                  <td colSpan="6" className="px-6 py-6 text-center text-slate-500">
                     No articles found
                   </td>
                 </tr>
