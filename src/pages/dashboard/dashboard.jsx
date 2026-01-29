@@ -164,7 +164,7 @@ const Dashboard = () => {
   if (!stats || !statsType) return <DashboardSkeleton />;
 
   const { topPartners, growthData, totals, trendlineData } = stats;
-  // console.log(statsType);
+  console.log("topPartners", topPartners);
 
   return (
     <div className="space-y-6">
@@ -173,7 +173,6 @@ const Dashboard = () => {
         description="Overview of leads, performance, and partner ranking."
       />
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Total Leads Box */}
         <div className="rounded-xl border border-slate-200 bg-white p-6">
           <p className="text-sm text-slate-500">Total Leads Sent</p>
           <p className="mt-4"> </p>
@@ -196,7 +195,6 @@ const Dashboard = () => {
           </p>
         </div>
 
-        {/* Dynamic Lead Types Boxes */}
         <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4">
           {Object.entries(statsType.data || {}).map(([label, value], index) => (
             <div
@@ -214,24 +212,26 @@ const Dashboard = () => {
         <div className=" ">
           <h3 className="text-lg font-semibold">Filter by Date Range</h3>
         </div>
-        <div className=" flex items-center gap-4">
+        <div className="flex items-center flex-wrap gap-4">
           <div className="flex flex-wrap gap-4">
-            <div className="">
+            <div className="flex flex-col gap-1">
               <label className="text-sm text-slate-600">Start Date</label>
               <input
                 type="date"
-                className="border border-slate-200 p-2 rounded w-full"
+                className="border border-slate-200 p-2 rounded w-56"
                 value={startDate}
+                 max={dayjs().format("YYYY-MM-DD")} 
                 onChange={(e) => setStartDate(e.target.value)}
               />
             </div>
 
-            <div>
+            <div className="flex flex-col gap-1">
               <label className="text-sm text-slate-600">End Date</label>
               <input
                 type="date"
                 className="border border-slate-200 p-2 rounded w-full"
-                value={endDate}
+                value={dayjs().format("YYYY-MM-DD")}
+               max={dayjs().format("YYYY-MM-DD")} 
                 onChange={(e) => setEndDate(e.target.value)}
               />
             </div>
@@ -242,7 +242,7 @@ const Dashboard = () => {
               Quick Range
             </label>
             <select
-              className="border border-slate-200 p-2 rounded w-40"
+              className="border border-slate-200 p-2 rounded w-56"
               value={range}
               onChange={(e) => {
                 setRange(e.target.value);
@@ -373,14 +373,14 @@ const Dashboard = () => {
       </div>
 
       <div className="border border-slate-200 rounded-xl bg-white">
-        <div className="border border-slate-200 px-6 py-4 rounded-xl">
+        <div className="border-0 border-slate-200 px-6 py-4 rounded-t-xl">
           <h3 className="font-semibold text-lg">Top 5 Partners</h3>
           <p className="text-xs text-slate-500">Based on total leads</p>
         </div>
 
-        <ul className="divide-y">
+        <ul className="">
           {topPartners?.map((p, i) => (
-            <li key={i} className="px-6 py-4 flex justify-between">
+            <li key={i} className="px-6 py-4 flex justify-between border-t-1 border-slate-200">
               <span className="font-medium"> {p?.partnerName}</span>
               <span className="font-semibold">{p?.totalLeads} Leads</span>
             </li>
@@ -389,11 +389,11 @@ const Dashboard = () => {
       </div>
 
       <div className="border-slate-200 rounded-xl bg-white">
-        <div className="border border-slate-200 px-6 py-4 rounded-xl">
+        <div className="border border-slate-200 px-6 border-b-0 rounded-t-xl py-4">
           <h3 className="font-semibold text-lg">Growth From Last Month</h3>
           <p className="text-xs text-slate-500">Lead performance comparison</p>
         </div>
-        <div className="rounded-xl border border-slate-200">
+        <div className="rounded-b-xl border border-t-1 border-slate-200 overflow-scroll">
           <table className="w-full  border-collapse text-sm">
             <thead>
               <tr className=" text-left">
