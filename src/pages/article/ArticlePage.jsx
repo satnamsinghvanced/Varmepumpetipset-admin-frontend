@@ -151,7 +151,22 @@ const ArticlePage = () => {
                 articles.data.map((article, index) => (
                   <tr key={article._id} className="hover:bg-slate-50">
                     <td className="px-6 py-4 text-slate-500">{(page - 1) * limit + index + 1}</td>
-                    <td className="px-6 py-4 font-medium text-slate-900">{article.title}</td>
+                    <td className="font-medium text-slate-900">
+                      <button
+                        className="hover:text-blue-500"
+                        onClick={(e) => {
+                          if (e.ctrlKey || e.metaKey || e.button === 1) {
+                            window.open(`/articles/${article._id}?page=${page}`, "_blank");
+                            return;
+                          } else {
+                            navigate(`/articles/${article._id}?page=${page}`)
+                          }
+                        }
+                        }
+                      >
+                        {article.title}
+                      </button>
+                    </td>
                     <td className="px-6 py-4">{article.categoryId?.title || "N/A"}</td>
                     {/* <td className="px-6 py-4">{article.createdBy?.username || "N/A"}</td> */}
                     <td className="px-6 py-4 text-sm">{new Date(article.createdAt).toLocaleDateString()}</td>
@@ -159,7 +174,15 @@ const ArticlePage = () => {
                       <div className="flex items-center justify-center gap-2">
                         <button
                           className="rounded-full border p-2 text-slate-500 hover:text-slate-900"
-                          onClick={() => navigate(`/articles/${article._id}?page=${page}`)}
+                          onClick={(e) => {
+                            if (e.ctrlKey || e.metaKey || e.button === 1) {
+                              window.open(`/articles/${article._id}?page=${page}`, "_blank");
+                              return;
+                            } else {
+                              navigate(`/articles/${article._id}?page=${page}`)
+                            }
+                          }
+                          }
                         >
                           <FaRegEye size={16} />
                         </button>

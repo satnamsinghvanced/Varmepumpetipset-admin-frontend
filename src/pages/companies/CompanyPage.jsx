@@ -66,7 +66,7 @@ export const Company = () => {
     if (newPage !== page) {
       setPage(newPage);
     }
-  }, [searchParams]); 
+  }, [searchParams]);
   useEffect(() => {
     const pageParam = searchParams.get('page');
     const currentPageInUrl = pageParam ? parseInt(pageParam, 10) || 1 : 1;
@@ -296,8 +296,21 @@ export const Company = () => {
                     <td className="px-6 py-4 text-slate-500">
                       {(page - 1) * limit + index + 1}
                     </td>
-                    <td className="px-6 py-4 font-medium text-slate-900">
-                      {company.companyName}
+                    <td className="font-medium text-slate-900">
+                      <button
+                        className="hover:text-blue-500 px-6 py-4  text-start"
+                        onClick={(e) => {
+                          if (e.ctrlKey || e.metaKey || e.button === 1) {
+                            window.open(`/company/${company._id}?page=${page}`, "_blank");
+                            return;
+                          } else {
+                            navigate(`/company/${company._id}?page=${page}`)
+                          }
+                        }
+                        }
+                      >
+                        {company.companyName}
+                      </button>
                     </td>
 
                     <td className="px-6 py-4">{company.address}</td>
@@ -332,7 +345,15 @@ export const Company = () => {
                       <div className="flex items-center justify-center gap-2">
                         <button
                           className="rounded-full border border-slate-200 p-2 text-slate-500 hover:text-slate-900"
-                          onClick={() => navigate(`/company/${company._id}?page=${page}`)}
+                          onClick={(e) => {
+                            if (e.ctrlKey || e.metaKey || e.button === 1) {
+                              window.open(`/company/${company._id}?page=${page}`, "_blank");
+                              return;
+                            } else {
+                              navigate(`/company/${company._id}?page=${page}`)
+                            }
+                          }
+                          }
                           title="Preview"
                         >
                           <FaRegEye size={16} />
