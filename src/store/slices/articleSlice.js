@@ -16,10 +16,7 @@ export const getArticles = createAsyncThunk(
         `/article?page=${page}&limit=${limit}&search=${search}`
       );
       return {
-        data: res.data.data.map((item) => ({
-          ...item,
-          image: fixImageUrl(item.image),
-        })),
+        data: res.data.data,
         pagination: res.data.pagination,
       };
     } catch (err) {
@@ -33,7 +30,7 @@ export const getArticleById = createAsyncThunk(
   async (id, { rejectWithValue }) => {
     try {
       const res = await api.get(`/article/${id}`);
-      return { ...res.data.data, image: fixImageUrl(res.data.data.image) };
+      return res.data.data;
     } catch (err) {
       return rejectWithValue(err.response?.data || err.message);
     }
@@ -49,7 +46,7 @@ export const createArticle = createAsyncThunk(
           "Content-Type": "multipart/form-data",
         },
       });
-      return { ...res.data.data, image: fixImageUrl(res.data.data.image) };
+      return res.data.data;
     } catch (err) {
       return rejectWithValue(err.response?.data || err.message);
     }
@@ -63,7 +60,7 @@ export const updateArticle = createAsyncThunk(
       const res = await api.put(`/article/update/${id}`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-      return { ...res.data.data, image: fixImageUrl(res.data.data.image) };
+      return res.data.data;
     } catch (err) {
       return rejectWithValue(err.response?.data || err.message);
     }

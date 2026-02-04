@@ -7,6 +7,12 @@ import {
   getPlaceById,
 } from "../../store/slices/placeSlice";
 
+const IMAGE_URL = import.meta.env.VITE_API_URL_IMAGE;
+const fixImageUrl = (url) => {
+  if (!url || typeof url !== "string") return url;
+  return url.startsWith("http") ? url : `${IMAGE_URL}${url.startsWith("/") ? "" : "/"}${url}`;
+};
+
 const PlaceDetailPage = () => {
   const { placeId } = useParams();
   const dispatch = useDispatch();
@@ -60,6 +66,7 @@ const PlaceDetailPage = () => {
   const detailItems = [
     { label: "slug", value: selectedPlace?.slug },
     { label: "County", value: selectedPlace?.countyId?.name },
+    // { label: "isRecommended", value: selectedPlace?.isRecommended },
     { label: "title", value: selectedPlace?.title },
     { label: "rank", value: selectedPlace?.rank },
   ];
@@ -69,10 +76,19 @@ const PlaceDetailPage = () => {
     { label: "Meta Description", value: selectedPlace?.metaDescription },
     { label: "Meta Keywords", value: selectedPlace?.metaKeywords },
     { label: "Canonical URL", value: selectedPlace?.canonicalUrl },
+
     { label: "OG Title", value: selectedPlace?.ogTitle },
     { label: "OG Description", value: selectedPlace?.ogDescription },
     { label: "OG Type", value: selectedPlace?.ogType },
+
     { label: "JSON-LD", value: selectedPlace?.jsonLd },
+    // { label: "Include in Sitemap", value: selectedPlace?.includeInSitemap ? "Yes" : "No" },
+    // { label: "Priority", value: selectedPlace?.priority },
+    // { label: "Change Frequency", value: selectedPlace?.changefreq },
+
+    // { label: "Published Date", value: selectedPlace?.publishedDate },
+    // { label: "Last Updated", value: selectedPlace?.lastUpdatedDate },
+
     {
       label: "Robots (noindex)",
       value: selectedPlace?.robots?.noindex ? "Yes" : "No",
@@ -133,7 +149,7 @@ const PlaceDetailPage = () => {
       {selectedPlace.icon && (
         <div className="flex justify-center mb-6">
           <img
-            src={(selectedPlace.icon)}
+            src={fixImageUrl(selectedPlace.icon)}
             alt={`${selectedPlace.name} icon`}
             className="h-24 w-24 rounded-full object-cover border border-slate-200"
           />
@@ -141,6 +157,7 @@ const PlaceDetailPage = () => {
       )}
       <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div className="space-y-6 p-6">
+          {/* BASIC DETAILS */}
           <div className="grid gap-4 md:grid-cols-3">
             {detailItems.map((item, i) => (
               <div

@@ -7,6 +7,12 @@ import {
   getArticleById,
 } from "../../store/slices/articleSlice";
 
+const IMAGE_URL = import.meta.env.VITE_API_URL_IMAGE;
+const fixImageUrl = (url) => {
+  if (!url || typeof url !== "string") return url;
+  return url.startsWith("http") ? url : `${IMAGE_URL}${url.startsWith("/") ? "" : "/"}${url}`;
+};
+
 const ArticleDetailPage = () => {
   const { articleId } = useParams();
   const dispatch = useDispatch();
@@ -79,7 +85,7 @@ const ArticleDetailPage = () => {
       <div className="rounded-2xl border border-slate-200 bg-white shadow-sm">
         {selectedArticle.image && (
           <img
-            src={selectedArticle.image}
+            src={fixImageUrl(selectedArticle.image)}
             alt={selectedArticle.title}
             className="h-72 w-full rounded-t-2xl object-cover"
           />
@@ -95,6 +101,14 @@ const ArticleDetailPage = () => {
                 {selectedArticle.categoryId?.title || "N/A"}
               </p>
             </div>
+            {/* <div className="rounded-xl border border-slate-100 bg-slate-50/60 p-4">
+              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                Author
+              </p>
+              <p className="mt-1 text-base font-semibold text-slate-900">
+                {selectedArticle.createdBy?.username || "N/A"}
+              </p>
+            </div> */}
             <div className="rounded-xl border border-slate-100 bg-slate-50/60 p-4">
               <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                 Article Position
@@ -186,6 +200,8 @@ const ArticleDetailPage = () => {
                 </div>
               ))}
             </div>
+
+            {/* Open Graph */}
             <div className="grid gap-4 md:grid-cols-3">
               {[
                 { label: "OG Title", value: selectedArticle.ogTitle },
@@ -209,6 +225,7 @@ const ArticleDetailPage = () => {
               ))}
             </div>
 
+            {/* JSON LD */}
             <div className="rounded-xl p-5 border border-slate-100 bg-white shadow-inner">
               <p className="text-xs font-semibold uppercase text-slate-500">
                 JSON-LD
@@ -217,6 +234,23 @@ const ArticleDetailPage = () => {
                 {selectedArticle.jsonLd || "No JSON-LD provided"}
               </pre>
             </div>
+
+            {/* Dates */}
+            {/* <div className="grid gap-4 md:grid-cols-3">
+          {[
+            { label: "Published Date", value: selectedArticle.publishedDate },
+            { label: "Last Updated Date", value: selectedArticle.lastUpdatedDate },
+            { label: "Show Published Date", value: selectedArticle.showPublishedDate ? "Yes" : "No" },
+            { label: "Show Updated Date", value: selectedArticle.showLastUpdatedDate ? "Yes" : "No" },
+          ].map((item, i) => (
+            <div key={i} className="rounded-xl bg-slate-50 p-4 border border-slate-100">
+              <p className="text-xs font-semibold text-slate-500 uppercase">{item.label}</p>
+              <p className="mt-1 text-sm text-slate-900 font-medium">{item.value || "N/A"}</p>
+            </div>
+          ))}
+        </div> */}
+
+            {/* Robots */}
             <div className="rounded-xl bg-slate-50 p-4 border border-slate-100">
               <p className="text-xs font-semibold text-slate-500 uppercase">
                 Robots

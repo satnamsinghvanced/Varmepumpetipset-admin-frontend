@@ -39,10 +39,7 @@ export const getCompanyById = createAsyncThunk(
     try {
       const res = await api.get(`/companies/detail/${id}`);
       // return data;
-      return {
-        ...res.data.data,
-        companyImage: fixImageUrl(res.data.data.companyImage),
-      };
+      return res.data;
     } catch (err) {
       return rejectWithValue(err.response?.data || err.message);
     }
@@ -53,7 +50,6 @@ export const createCompany = createAsyncThunk(
   "companies/createCompany",
   async (companyData, { rejectWithValue }) => {
     try {
-      console.log(companyData);
       const { data } = await api.post("/companies/create", companyData);
       return data;
     } catch (err) {
@@ -66,7 +62,6 @@ export const updateCompany = createAsyncThunk(
   "companies/updateCompany",
   async ({ id, companyData }, { rejectWithValue }) => {
     try {
-      console.log("companyData:", companyData);
       const { data } = await api.put(`/companies/update/${id}`, companyData);
       return data;
     } catch (err) {

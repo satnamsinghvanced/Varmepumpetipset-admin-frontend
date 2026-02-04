@@ -5,6 +5,12 @@ import PageHeader from "../../components/PageHeader";
 
 import { getCountyById, clearSelectedCounty } from "../../store/slices/countySlice";
 
+const IMAGE_URL = import.meta.env.VITE_API_URL_IMAGE;
+const fixImageUrl = (url) => {
+  if (!url || typeof url !== "string") return url;
+  return url.startsWith("http") ? url : `${IMAGE_URL}${url.startsWith("/") ? "" : "/"}${url}`;
+};
+
 const CountiesDetailPage = () => {
   const { countyId } = useParams();
   const dispatch = useDispatch();
@@ -141,7 +147,7 @@ const CountiesDetailPage = () => {
       {selectedCounty.icon && (
         <div className="flex justify-center mb-6">
           <img
-            src={(selectedCounty.icon)}
+            src={fixImageUrl(selectedCounty.icon)}
             alt={`${selectedCounty.name} icon`}
             className="h-24 w-24 rounded-full object-cover border border-slate-200"
           />

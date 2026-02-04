@@ -27,9 +27,6 @@ export const getPlaceById = createAsyncThunk(
     try {
       const { data } = await api.get(`/places/detail/${id}`);
 
-      if (data?.data?.icon) {
-        data.data.icon = fixImageUrl(data.data.icon);
-      }
       return data;
     } catch (err) {
       return rejectWithValue(err.response?.data || err.message);
@@ -55,12 +52,9 @@ export const createPlace = createAsyncThunk(
 
 export const updatePlace = createAsyncThunk(
   "places/updatePlace",
-  async ({ id, placeData, isFormData }, { rejectWithValue }) => {
+  async ({ id, placeData }, { rejectWithValue }) => {
     try {
-      const config = isFormData
-        ? { headers: { "Content-Type": "multipart/form-data" } }
-        : {};
-      const { data } = await api.put(`/places/update/${id}`, placeData, config);
+      const { data } = await api.put(`/places/update/${id}`, placeData);
       return data;
     } catch (err) {
       return rejectWithValue(err.response?.data || err.message);

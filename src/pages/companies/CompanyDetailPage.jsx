@@ -7,6 +7,12 @@ import {
   getCompanyById,
 } from "../../store/slices/companySlice";
 
+const IMAGE_URL = import.meta.env.VITE_API_URL_IMAGE;
+const fixImageUrl = (url) => {
+  if (!url || typeof url !== "string") return url;
+  return url.startsWith("http") ? url : `${IMAGE_URL}${url.startsWith("/") ? "" : "/"}${url}`;
+};
+
 const CompanyDetailPage = () => {
   const { companyId } = useParams();
   const dispatch = useDispatch();
@@ -80,7 +86,7 @@ const CompanyDetailPage = () => {
       <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         {selectedCompany.companyImage ? (
           <img
-            src={selectedCompany.companyImage}
+            src={fixImageUrl(selectedCompany.companyImage)}
             alt={selectedCompany.companyName}
             className="h-64 w-full object-cover"
           />

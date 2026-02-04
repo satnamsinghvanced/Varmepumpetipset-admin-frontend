@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import PageHeader from "../../components/PageHeader";
+import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
 import { RiDeleteBin5Line } from "react-icons/ri";
 import {
@@ -13,6 +14,38 @@ import {
 import { uploadImage } from "../../store/slices/imageUpload";
 import { toast } from "react-toastify";
 import ImageUploader from "../../UI/ImageUpload";
+
+const IMAGE_URL = import.meta.env.VITE_API_URL_IMAGE;
+const fixImageUrl = (url) => {
+  if (!url || typeof url !== "string") return url;
+  return url.startsWith("http") ? url : `${IMAGE_URL}${url.startsWith("/") ? "" : "/"}${url}`;
+};
+
+const quillModules = {
+  toolbar: [
+    [{ header: [1, 2, 3, false] }],
+    ["bold", "italic", "underline", "strike"],
+    [{ list: "ordered" }, { list: "bullet" }],
+    ["blockquote", "code-block"],
+    [{ align: [] }],
+    ["link", "image"],
+    ["clean"],
+  ],
+};
+
+const quillFormats = [
+  "header",
+  "bold",
+  "italic",
+  "underline",
+  "strike",
+  "list",
+  "blockquote",
+  "code-block",
+  "align",
+  "link",
+  "image",
+];
 
 const requiredFields = [
   "companyName",
@@ -151,7 +184,7 @@ const CompanyFormPage = () => {
 
         robots: selectedCompany.robots,
       });
-      setPreviewImage(selectedCompany.companyImage || "");
+      setPreviewImage(fixImageUrl(selectedCompany.companyImage || ""));
     }
   }, [isEditMode, selectedCompany]);
 
