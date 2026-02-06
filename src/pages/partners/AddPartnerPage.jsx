@@ -1,16 +1,23 @@
 /* eslint-disable no-unused-vars */
-import api from "../../api/axios";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { createPartner } from "../../store/slices/partnersSlice";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "react-toastify";
+import api from "../../api/axios";
+import { createPartner } from "../../store/slices/partnersSlice";
 import MultiSelect from "../../UI/MultiSelect";
 
 export const AddPartnerPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { loading } = useSelector((state) => state.partners);
+    const [searchParams, setSearchParams] = useSearchParams();
+  const getInitialPage = () => {
+    const pageParam = searchParams.get("page");
+    return pageParam ? parseInt(pageParam, 10) || 1 : 1;
+  };
+
+  const [page, setPage] = useState(getInitialPage);
   const [leadTypesList, setLeadTypesList] = useState([]);
   const [leadTypes, setLeadTypes] = useState([]);
   const [form, setForm] = useState({
@@ -162,10 +169,9 @@ export const AddPartnerPage = () => {
     };
 
     const result = await dispatch(createPartner(payload));
-    console.log(result);
     if (result?.payload?.success) {
       toast.success("Partner created successfully!");
-      navigate("/partners");
+     navigate(`/partners?page=${page}`);
     } else {
       const errorMessage =
         result.payload?.message || "Failed to create partner.";
@@ -185,7 +191,7 @@ export const AddPartnerPage = () => {
 
         <div>
           <button
-            onClick={() => navigate("/partners")}
+             onClick={() => navigate(`/partners?page=${page}`)}
             className="btn btn-white btn-sm rounded-lg border-slate-300 text-slate-700 px-6 py-2"
           >
             Back to Partners

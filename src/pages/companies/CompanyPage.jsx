@@ -1,22 +1,22 @@
-import { useEffect, useState, useRef, useCallback } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { AiTwotoneEdit } from "react-icons/ai";
-import { RiDeleteBin5Line } from "react-icons/ri";
 import { LuFileUp, LuPlus } from "react-icons/lu";
-import { toast } from "react-toastify";
+import { RiDeleteBin5Line } from "react-icons/ri";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useSearchParams } from "react-router";
+import { toast } from "react-toastify";
 
 import PageHeader from "../../components/PageHeader";
 import Pagination from "../../UI/pagination";
 
+import { FaRegEye } from "react-icons/fa";
+import { ROUTES } from "../../consts/routes";
 import {
-  getCompanies,
-  deleteCompany,
   createCompany,
+  deleteCompany,
+  getCompanies,
   importCompanies,
 } from "../../store/slices/companySlice";
-import { ROUTES } from "../../consts/routes";
-import { FaRegEye } from "react-icons/fa";
 
 export const Company = () => {
   const dispatch = useDispatch();
@@ -360,9 +360,14 @@ export const Company = () => {
                         </button>
                         <button
                           className="rounded-full border p-2 text-slate-500 hover:text-slate-900"
-                          onClick={() =>
-                            navigate(`/company/${company._id}/Edit?page=${page}`)
-                          }
+                            onClick={(e) => {
+                            if (e.ctrlKey || e.metaKey || e.button === 1) {
+                              window.open(`/company/${company._id}/edit?page=${page}`, "_blank");
+                              return;
+                            } else {
+                              navigate(`/company/${company._id}/edit?page=${page}`)
+                            }
+                          }}
                         >
                           <AiTwotoneEdit size={16} />
                         </button>

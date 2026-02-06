@@ -1,14 +1,14 @@
-import { useEffect, useState, useCallback } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useCallback, useEffect, useState } from "react";
 import { AiTwotoneEdit } from "react-icons/ai";
-import { RiDeleteBin5Line } from "react-icons/ri";
 import { FaRegEye } from "react-icons/fa";
 import { LuPlus } from "react-icons/lu";
-import { toast } from "react-toastify";
+import { RiDeleteBin5Line } from "react-icons/ri";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useSearchParams } from "react-router";
+import { toast } from "react-toastify";
 import PageHeader from "../../components/PageHeader";
+import { deleteArticle, getArticles } from "../../store/slices/articleSlice";
 import Pagination from "../../UI/pagination";
-import { getArticles, deleteArticle } from "../../store/slices/articleSlice";
 
 const ArticlePage = () => {
   const dispatch = useDispatch();
@@ -174,21 +174,27 @@ const ArticlePage = () => {
                       <div className="flex items-center justify-center gap-2">
                         <button
                           className="rounded-full border p-2 text-slate-500 hover:text-slate-900"
-                          onClick={(e) => {
+                         onClick={(e) => {
                             if (e.ctrlKey || e.metaKey || e.button === 1) {
-                              window.open(`/articles/${article._id}?page=${page}`, "_blank");
+                              window.open(`/articles/${article._id}/edit?page=${page}`, "_blank");
                               return;
                             } else {
-                              navigate(`/articles/${article._id}?page=${page}`)
+                              navigate(`/articles/${article._id}/edit?page=${page}`)
                             }
-                          }
-                          }
+                          }}
                         >
                           <FaRegEye size={16} />
                         </button>
                         <button
                           className="rounded-full border p-2 text-slate-500 hover:text-slate-900"
-                          onClick={() => navigate(`/articles/${article._id}/edit?page=${page}`)}
+                         onClick={(e) => {
+                            if (e.ctrlKey || e.metaKey || e.button === 1) {
+                              window.open(`/articles/${article._id}/edit?page=${page}`, "_blank");
+                              return;
+                            } else {
+                              navigate(`/articles/${article._id}/edit?page=${page}`)
+                            }
+                          }}
                         >
                           <AiTwotoneEdit size={16} />
                         </button>
