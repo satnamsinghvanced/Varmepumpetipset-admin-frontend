@@ -119,21 +119,21 @@ const LeadDetails = () => {
       details: "Details",
     };
 
-    Object.entries(fieldMap).forEach(([key, label]) => {
+    Object.entries(fieldMap)?.forEach(([key, label]) => {
       if (values[key]) add("User Details", label, values[key]);
     });
     add("");
 
     // ================= PARTNERS =================
     add("Partners", "Partner Name", "Email", "Lead Price");
-    selectedLead.partnerIds.forEach((p) => {
+    selectedLead.partnerIds?.forEach((p) => {
       add("Partners", p.partnerId?.name, p.partnerId?.email, p.leadPrice);
     });
     add("");
 
     // ================= EMAIL RESULTS =================
     add("Email Results", "Email", "Status", "Sent At", "Error");
-    selectedLead.emailResults.forEach((er) => {
+    selectedLead.emailResults?.forEach((er) => {
       add(
         "Email Results",
         er.email,
@@ -157,7 +157,7 @@ const LeadDetails = () => {
     // ================= PROCESSING LOGS =================
     add("Processing Logs", "Step", "Partner", "Result", "Details");
 
-    Object.values(log.steps || {}).forEach((step) => {
+    Object.values(log.steps || {})?.forEach((step) => {
       step.log?.forEach((entry) => {
         add(
           "Processing Logs",
